@@ -73,7 +73,7 @@ export default {
       position: absolute;
       top: 0;
 
-      color: #16a085;
+      color: #6be0fe;
       font-size: 42px;
       line-height: 40px;
 
