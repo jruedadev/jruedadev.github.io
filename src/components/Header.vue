@@ -25,7 +25,7 @@
                 <router-link to="/work" class="nav-link">Work</router-link>
               </li>
               <li class="nav-item mx-4">
-                <a href="/pdf/hoja_de_vida.pdf">CV</a>
+                <a href="/pdf/hoja_de_vida.pdf" class="nav-link" target="_blank">CV</a>
               </li>
               <li class="nav-item mx-4">
                 <router-link to="/contact" class="nav-link">Contact</router-link>
