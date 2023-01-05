@@ -2,9 +2,8 @@
   <nav class="navbar navbar-expand-lg navbar-light transparent_navbar">
     <div class="container-fluid">
       <a class="navbar-brand ml-3" href="#">
-          <img src="https://getbootstrap.com/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="30" height="24"
+          <img src="../assets/img/logo.png" alt="JRueda" width="80" height="80"
               class="d-inline-block align-text-top">
-          JRueda
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
           data-bs-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false"
@@ -43,6 +42,7 @@ export default {
 nav.navbar {
   min-height: 80px;
 }
+
 .main_banner {
   height: 500px;
 }

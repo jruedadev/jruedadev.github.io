@@ -1,14 +1,12 @@
 <template>
   <div class="section_home">
-    <div
-      class="
+    <div class="
         d-flex
         flex-column
         justify-content-center
         align-items-center
         main_banner
-      "
-    >
+      ">
       <h1>Hi, I'm Johan Rueda</h1>
       <h2 class="content__container__text">Web Developer and</h2>
       <div class="content">
@@ -33,6 +31,18 @@ export default {
   components: {
     // SectionSeparator,
   },
+  metaInfo() {
+    return {
+      title: "Johan Roberto Rueda - Web Developer",
+      meta: [
+        { name: 'description', content: 'This is my Personal Web Developer Portfolio' },
+        { property: 'og:title', content: "Johan Roberto Rueda - Web Developer" },
+        { property: 'og:site_name', content: 'JRuedaDev' },
+        { property: 'og:type', content: 'website' },
+        { name: 'robots', content: 'index,follow' }
+      ]
+    }
+  }
 };
 </script>
 
@@ -40,7 +50,7 @@ export default {
 <style lang="scss" scoped>
 .content {
   position: absolute;
-  top: 50%;
+  top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
   height: 160px;
@@ -113,37 +123,45 @@ export default {
 }
 
 @-webkit-keyframes opacity {
+
   0%,
   100% {
     opacity: 0;
   }
+
   50% {
     opacity: 1;
   }
 }
 
 @-webkit-keyframes change {
+
   0%,
   12.66%,
   100% {
     transform: translate3d(0, 0, 0);
   }
+
   16.66%,
   29.32% {
     transform: translate3d(0, -25%, 0);
   }
+
   33.32%,
   45.98% {
     transform: translate3d(0, -50%, 0);
   }
+
   49.98%,
   62.64% {
     transform: translate3d(0, -75%, 0);
   }
+
   66.64%,
   79.3% {
     transform: translate3d(0, -50%, 0);
   }
+
   83.3%,
   95.96% {
     transform: translate3d(0, -25%, 0);
@@ -151,37 +169,45 @@ export default {
 }
 
 @-o-keyframes opacity {
+
   0%,
   100% {
     opacity: 0;
   }
+
   50% {
     opacity: 1;
   }
 }
 
 @-o-keyframes change {
+
   0%,
   12.66%,
   100% {
     transform: translate3d(0, 0, 0);
   }
+
   16.66%,
   29.32% {
     transform: translate3d(0, -25%, 0);
   }
+
   33.32%,
   45.98% {
     transform: translate3d(0, -50%, 0);
   }
+
   49.98%,
   62.64% {
     transform: translate3d(0, -75%, 0);
   }
+
   66.64%,
   79.3% {
     transform: translate3d(0, -50%, 0);
   }
+
   83.3%,
   95.96% {
     transform: translate3d(0, -25%, 0);
@@ -189,37 +215,45 @@ export default {
 }
 
 @-moz-keyframes opacity {
+
   0%,
   100% {
     opacity: 0;
   }
+
   50% {
     opacity: 1;
   }
 }
 
 @-moz-keyframes change {
+
   0%,
   12.66%,
   100% {
     transform: translate3d(0, 0, 0);
   }
+
   16.66%,
   29.32% {
     transform: translate3d(0, -25%, 0);
   }
+
   33.32%,
   45.98% {
     transform: translate3d(0, -50%, 0);
   }
+
   49.98%,
   62.64% {
     transform: translate3d(0, -75%, 0);
   }
+
   66.64%,
   79.3% {
     transform: translate3d(0, -50%, 0);
   }
+
   83.3%,
   95.96% {
     transform: translate3d(0, -25%, 0);
@@ -227,37 +261,45 @@ export default {
 }
 
 @keyframes opacity {
+
   0%,
   100% {
     opacity: 0;
   }
+
   50% {
     opacity: 1;
   }
 }
 
 @keyframes change {
+
   0%,
   12.66%,
   100% {
     transform: translate3d(0, 0, 0);
   }
+
   16.66%,
   29.32% {
     transform: translate3d(0, -25%, 0);
   }
+
   33.32%,
   45.98% {
     transform: translate3d(0, -50%, 0);
   }
+
   49.98%,
   62.64% {
     transform: translate3d(0, -75%, 0);
   }
+
   66.64%,
   79.3% {
     transform: translate3d(0, -50%, 0);
   }
+
   83.3%,
   95.96% {
     transform: translate3d(0, -25%, 0);
