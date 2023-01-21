@@ -7,15 +7,12 @@
         align-items-center
         main_banner
       ">
-      <h1>Hi, I'm Johan Rueda</h1>
-      <h2 class="content__container__text">Web Developer and</h2>
+      <h1>{{ $t('home.welcome') }}</h1>
+      <h2 class="content__container__text">{{ $t('home.description.title') }}</h2>
       <div class="content">
         <div class="content__container">
           <ul class="content__container__list">
-            <li class="content__container__list__item">🎮 Gamer!</li>
-            <li class="content__container__list__item">🖥️ Anime Fan!</li>
-            <li class="content__container__list__item">🐶 Dog Lover!</li>
-            <li class="content__container__list__item">🤓 Geek!</li>
+            <li class="content__container__list__item" :key="key" v-for="(slide, key) in slides">{{ $t(slide) }}</li>
           </ul>
         </div>
       </div>
@@ -42,7 +39,17 @@ export default {
         { name: 'robots', content: 'index,follow' }
       ]
     }
-  }
+  },
+  data() {
+    return {
+      slides: [
+        "home.description.slides.first",
+        "home.description.slides.second",
+        "home.description.slides.third",
+        "home.description.slides.fourth",
+      ]
+    }
+  },
 };
 </script>
 

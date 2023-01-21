@@ -1,0 +1,22 @@
+{
+  "menu": {
+    "home": "Inicio",
+    "about": "Sobre mi",
+    "skills": "Habilidades",
+    "work": "Proyectos",
+    "cv": "Hoja de Vida",
+    "contact": "Contacto"
+  },
+  "home": {
+    "welcome": "Hola, Soy Johan Roberto Rueda",
+    "description": {
+      "title": "Desarrollador Web y,",
+      "slides": {
+        "first": "🎮 Gamer!",
+        "second": "🖥️ Fan del Anime!",
+        "third": "🐶 Amante de los perros!",
+        "fourth": "🖥️ 🤓 Geek!"
+      }
+    }
+  }
+}
