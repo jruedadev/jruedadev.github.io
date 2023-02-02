@@ -2,7 +2,7 @@
   <nav class="navbar navbar-expand-lg navbar-light transparent_navbar">
     <div class="container-fluid">
       <a class="navbar-brand ml-3" href="#">
-          <img src="../assets/img/logo.png" alt="JRueda" width="80" height="80"
+          <img src="../assets/img/logo_transparent.png" alt="JRueda" width="80" height="80"
               class="d-inline-block align-text-top">
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
