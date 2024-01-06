@@ -9,8 +9,8 @@
 
 <script>
 // import HelloWorld from "./components/HelloWorld.vue";
-import HeaderComponent from "./components/Header.vue";
-import FooterComponent from "./components/Footer.vue";
+import HeaderComponent from "./views/Header.vue";
+import FooterComponent from "./views/Footer.vue";
 
 export default {
   name: "App",
