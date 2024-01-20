@@ -6,7 +6,7 @@ import ViteExpress from "vite-express"
 const app = express()
 
 // Define a route for the application
-app.get("/message", (_, res) => res.send("Hello from express!"(
+app.get("/message", (_, res) => res.send("Hello from express!"))
 
 // Configure vite-express to serve the dist folder
 ViteExpress.serve(app, "dist")
