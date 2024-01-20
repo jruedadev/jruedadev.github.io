@@ -1,5 +1,6 @@
 <template>
-;<footer>&copy; {{ year }} Johan Roberto Rueda</footer>
+  ;
+  <footer>&copy; {{ year }} Johan Roberto Rueda</footer>
 </template>
 <script>
 export default {
