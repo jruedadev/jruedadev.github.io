@@ -1,0 +1,72 @@
+@use 'sass:map';
+@import 'node_modules/bootstrap/scss/bootstrap';
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+
+$theme-colors: (
+  'primary': #2f3e46,
+  'secondary': #354f52,
+  'base': #52796f,
+  'contrast': #84a98c
+);
+
+$primary-color: map-get($theme-colors, 'primary');
+$secondary-color: map-get($theme-colors, 'secondary');
+$base-color: map-get($theme-colors, 'base');
+$contrast-color: map-get($theme-colors, 'contrast');
+
+/**
+ * -- HEADER
+ * --- HeaderComponent
+ */
+.navbar {
+  background-color: $base-color;
+}
+
+.nav-item > .nav-link {
+  color: $primary-color;
+}
+
+/*
+ * -- HEADER
+ * --- HeaderComponent
+ * ---- LanguageSwitcherComponent
+ */
+.langselect {
+  display: inline-block;
+  position: relative;
+  background-color: $base-color;
+  width: 50px;
+  height: 40px;
+  border: 1px solid $contrast-color;
+  color: $contrast-color;
+  font-size: 14px;
+  cursor: pointer;
+  text-transform: uppercase;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-indent: 1px;
+  text-overflow: '';
+}
+
+.langselect > option {
+  color: $contrast-color;
+  background-color: $base-color;
+}
+
+/*
+ * -- HomeComponent
+ */
+.section_home {
+  height: 500px;
+}
+
+.section_home .profile_picture {
+  width: 50%;
+}
+
+.navbar-nav .nav-link.active {
+  color: $contrast-color;
+  border-bottom: 1px solid $contrast-color;
+}

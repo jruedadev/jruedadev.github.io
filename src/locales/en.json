@@ -1,0 +1,22 @@
+{
+  "menu": {
+    "home": "Home",
+    "about": "About",
+    "skills": "Skills",
+    "work": "Work",
+    "cv": "CV",
+    "contact": "Contact"
+  },
+  "home": {
+    "welcome": "Hi, I'm Johan Rueda",
+    "description": {
+      "title": "Web Developer and",
+      "slides": {
+        "first": "🎮 Gamer!",
+        "second": "🖥️ Anime Fan!",
+        "third": "🐶 Dog Lover!",
+        "fourth": "🖥️ 🤓 Geek!"
+      }
+    }
+  }
+}
