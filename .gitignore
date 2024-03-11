@@ -33,3 +33,6 @@ coverage
 .env.prod
 .env.local
 .env.test
+
+# Sentry Config File
+.env.sentry-build-plugin
