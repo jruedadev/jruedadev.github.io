@@ -1,8 +1,10 @@
 <template>
+  <div class="flex flex-col min-h-[100dvh]">
   <HeaderComponent></HeaderComponent>
   <router-view></router-view>
   <SpeedInsights />
   <FooterComponent></FooterComponent>
+  </div>
 </template>
 
 <script>
