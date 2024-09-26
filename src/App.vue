@@ -1,12 +1,11 @@
 <template>
-  <div class="flex flex-col min-h-[100dvh]">
+  <div class="flex flex-col min-h-screen">
   <HeaderComponent></HeaderComponent>
   <router-view></router-view>
   <SpeedInsights />
   <FooterComponent></FooterComponent>
   </div>
 </template>
-
 <script>
 // import HelloWorld from "./components/HelloWorld.vue";
 import HeaderComponent from './views/Header.vue'

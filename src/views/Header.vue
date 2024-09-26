@@ -1,16 +1,16 @@
 <template>
   <header class="px-4 lg:px-6 h-14 flex items-center">
-    <router-link :to="home">
-      <img src="../assets/img/logo_transparent.png" class="h-20" alt="JruedaDev Logo" />
-    </router-link>
-    <nav class="ml-auto flex gap-4 sm:gap-6">
-      <router-link v-for="(item, index) in items" :key="index" :to="item.link" class="text-sm font-medium hover:text-primary underline-offset-4">
-        {{ $t(item.title) }}
-      </router-link>
-      <LanguageSwitcher />
-    </nav>
-  </header>
-
+      <a class="flex items-center justify-center" href="#">
+        <span class="sr-only">JruedaDev</span>
+        <span class="font-bold text-xl">JruedaDev</span>
+      </a>
+      <nav class="ml-auto flex gap-4 sm:gap-6">
+        <a class="text-sm font-medium hover:underline underline-offset-4" href="#about">About</a>
+        <a class="text-sm font-medium hover:underline underline-offset-4" href="#skills">Skills</a>
+        <a class="text-sm font-medium hover:underline underline-offset-4" href="#projects">Projects</a>
+        <a class="text-sm font-medium hover:underline underline-offset-4" href="#contact">Contact</a>
+      </nav>
+    </header>
 </template>
 
 <script>
