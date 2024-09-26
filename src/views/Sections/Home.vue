@@ -1,30 +1,38 @@
 <template>
-  <div class="container-fluid">
-    <div class="row section_home">
-      <div class="col-6 p-0 d-flex flex-column justify-content-center align-items-center">
-        <img
-          class="profile_picture img-circle"
-          src="../../assets/img/logo_transparent.png"
-          alt="JRueda"
-        />
-      </div>
-      <div
-        class="col-6 p-0 d-flex flex-column justify-content-center align-items-center main_banner"
-      >
-        <h1>{{ $t('home.welcome') }}</h1>
-        <h2 class="content__container__text">{{ $t('home.description.title') }}</h2>
-        <div class="content">
-          <div class="content__container">
-            <ul class="content__container__list">
-              <li class="content__container__list__item" :key="key" v-for="(slide, key) in slides">
-                {{ $t(slide) }}
-              </li>
-            </ul>
+<main class="flex-1">
+      <section class="w-full py-12 md:py-24 lg:py-32 xl:py-48" id="about">
+        <div class="container px-4 md:px-6">
+          <div class="flex flex-col items-center space-y-4 text-center">
+            <div class="space-y-2">
+              <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                JruedaDev
+              </h1>
+              <p class="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                Fullstack Web Developer passionate about creating elegant, efficient, and user-friendly web applications.
+              </p>
+            </div>
+            <div class="space-x-4">
+              <a href="#contact" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+                Contact Me
+              </a>
+              <a href="#projects" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-input hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4">
+                View Projects
+              </a>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </section>
+      <section class="w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800" id="skills">
+        <div class="container px-4 md:px-6">
+          <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">Skills</h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div v-for="skill in skills" :key="skill" class="flex items-center justify-center p-4 bg-white rounded-lg shadow dark:bg-gray-700">
+              <span class="font-medium">{{ skill }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
 </template>
 
 <script>
