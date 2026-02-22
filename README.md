@@ -1,57 +1,73 @@
-# jruedadev
+# Welcome to your Lovable project
 
-This template should help get you started developing with Vue 3 in Vite.
+## Project info
 
-## Recommended IDE Setup
+**URL**: https://lovable.dev/projects/6032e69d-db30-40d4-b96d-6bad2438d60d
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## How can I edit this code?
 
-## Customize configuration
+There are several ways of editing your application.
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+**Use Lovable**
 
-## Project Setup
+Simply visit the [Lovable Project](https://lovable.dev/projects/6032e69d-db30-40d4-b96d-6bad2438d60d) and start prompting.
+
+Changes made via Lovable will be committed automatically to this repo.
+
+**Use your preferred IDE**
+
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Follow these steps:
 
 ```sh
-npm install
-```
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-### Compile and Hot-Reload for Development
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-```sh
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-### Compile and Minify for Production
+**Edit a file directly in GitHub**
 
-```sh
-npm run build
-```
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+**Use GitHub Codespaces**
 
-```sh
-npm run test:unit
-```
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-### Run End-to-End Tests with [Cypress](https://www.cypress.io/)
+## What technologies are used for this project?
 
-```sh
-npm run test:e2e:dev
-```
+This project is built with:
 
-This runs the end-to-end tests against the Vite development server.
-It is much faster than the production build.
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-But it's still recommended to test the production build with `test:e2e` before deploying (e.g. in CI environments):
+## How can I deploy this project?
 
-```sh
-npm run build
-npm run test:e2e
-```
+Simply open [Lovable](https://lovable.dev/projects/6032e69d-db30-40d4-b96d-6bad2438d60d) and click on Share -> Publish.
 
-### Lint with [ESLint](https://eslint.org/)
+## Can I connect a custom domain to my Lovable project?
 
-```sh
-npm run lint
-```
+Yes, you can!
+
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
