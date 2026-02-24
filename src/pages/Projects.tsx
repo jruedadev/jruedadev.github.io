@@ -1,0 +1,13 @@
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+
+const Projects = () => {
+  return (
+    <div className="min-h-screen">
+      <Header />
+      <Footer />
+    </div>
+  );
+};
+
+export default Projects;
