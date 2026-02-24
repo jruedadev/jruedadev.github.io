@@ -8,30 +8,30 @@ export const Projects = () => {
   const { t } = useTranslation();
 
   const projects = [
-    {
-      title: 'E-Commerce Platform',
-      description: 'Fullstack e-commerce solution with Laravel backend and React frontend',
-      technologies: ['Laravel', 'React', 'MySQL', 'AWS'],
-      image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=500&fit=crop',
-      github: 'https://github.com',
-      demo: 'https://example.com',
-    },
-    {
-      title: 'Real Estate Management System',
-      description: 'Property management platform with Angular and Phalcon',
-      technologies: ['Phalcon', 'Angular', 'PostgreSQL', 'Docker'],
-      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=500&fit=crop',
-      github: 'https://github.com',
-      demo: 'https://example.com',
-    },
-    {
-      title: 'Healthcare Portal',
-      description: 'Patient management system with Vue.js and CodeIgniter',
-      technologies: ['CodeIgniter', 'Vue.js', 'MySQL', 'Redis'],
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&h=500&fit=crop',
-      github: 'https://github.com',
-      demo: 'https://example.com',
-    },
+    // {
+    //   title: 'E-Commerce Platform',
+    //   description: 'Fullstack e-commerce solution with Laravel backend and React frontend',
+    //   technologies: ['Laravel', 'React', 'MySQL', 'AWS'],
+    //   image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=500&fit=crop',
+    //   github: 'https://github.com',
+    //   demo: 'https://example.com',
+    // },
+    // {
+    //   title: 'Real Estate Management System',
+    //   description: 'Property management platform with Angular and Phalcon',
+    //   technologies: ['Phalcon', 'Angular', 'PostgreSQL', 'Docker'],
+    //   image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=500&fit=crop',
+    //   github: 'https://github.com',
+    //   demo: 'https://example.com',
+    // },
+    // {
+    //   title: 'Healthcare Portal',
+    //   description: 'Patient management system with Vue.js and CodeIgniter',
+    //   technologies: ['CodeIgniter', 'Vue.js', 'MySQL', 'Redis'],
+    //   image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&h=500&fit=crop',
+    //   github: 'https://github.com',
+    //   demo: 'https://example.com',
+    // },
   ];
 
   return (

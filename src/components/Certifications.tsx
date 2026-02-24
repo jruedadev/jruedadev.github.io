@@ -6,26 +6,26 @@ export const Certifications = () => {
   const { t } = useTranslation();
 
   const certifications = [
-    {
-      title: 'AWS Certified Solutions Architect',
-      issuer: 'Amazon Web Services',
-      year: '2023',
-    },
-    {
-      title: 'Laravel Certified Developer',
-      issuer: 'Laravel',
-      year: '2022',
-    },
-    {
-      title: 'Docker Certified Associate',
-      issuer: 'Docker Inc.',
-      year: '2022',
-    },
-    {
-      title: 'Professional Scrum Master',
-      issuer: 'Scrum.org',
-      year: '2021',
-    },
+    // {
+    //   title: 'AWS Certified Solutions Architect',
+    //   issuer: 'Amazon Web Services',
+    //   year: '2023',
+    // },
+    // {
+    //   title: 'Laravel Certified Developer',
+    //   issuer: 'Laravel',
+    //   year: '2022',
+    // },
+    // {
+    //   title: 'Docker Certified Associate',
+    //   issuer: 'Docker Inc.',
+    //   year: '2022',
+    // },
+    // {
+    //   title: 'Professional Scrum Master',
+    //   issuer: 'Scrum.org',
+    //   year: '2021',
+    // },
   ];
 
   return (
