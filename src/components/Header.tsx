@@ -8,10 +8,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Logo } from './Logo';
 
 export const Header = () => {
   const { t, i18n } = useTranslation();
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState< 'light' | 'dark'>('light');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleTheme = () => {
@@ -42,8 +43,8 @@ export const Header = () => {
     <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <nav className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <a href="#" className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            JR
+          <a href="#" className="text-2xl font-bold">
+            <Logo className="h-8 w-8 text-primary" />
           </a>
 
           {/* Desktop Navigation */}
