@@ -1,4 +1,56 @@
-return (
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Github, ExternalLink, X } from 'lucide-react';
+import { useProjects } from '@/hooks/useProjects';
+import { useCategories, getCategoryName } from '@/hooks/useCategories';
+
+const Projects = () => {
+  const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const { data: projects, isLoading } = useProjects();
+  const { data: categories = [] } = useCategories();
+
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedTech, setSelectedTech] = useState<string | null>(null);
+
+  // Todas las tecnologías únicas de todos los proyectos
+  const allTechnologies = useMemo(() => {
+    if (!projects) return [];
+    const techs = projects.flatMap(p => p.technologies);
+    return [...new Set(techs)].sort();
+  }, [projects]);
+
+  // Proyectos filtrados
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+    return projects.filter(p => {
+      const matchCat = selectedCategory
+        ? p.category_slugs?.includes(selectedCategory)
+        : true;
+      const matchTech = selectedTech
+        ? p.technologies.includes(selectedTech)
+        : true;
+      return matchCat && matchTech;
+    });
+  }, [projects, selectedCategory, selectedTech]);
+
+  const getDescription = (project) =>
+    i18n.language === 'es' ? project.description_es : project.description_en;
+
+  const clearFilters = () => {
+    setSelectedCategory(null);
+    setSelectedTech(null);
+  };
+
+  const hasFilters = selectedCategory || selectedTech;
+
+  return (
   <div className="min-h-screen">
     <Header />
 
@@ -224,3 +276,6 @@ return (
     <Footer />
   </div>
 );
+};
+
+export default Projects;
