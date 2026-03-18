@@ -2,9 +2,13 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Github, Linkedin, Globe, ArrowRight } from 'lucide-react';
 import profilePhoto from '@/assets/profile-photo.jpg';
+import { useProfile } from '@/hooks/useProfile';
 
 export const Hero = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { data: profile, isLoading } = useProfile();
+
+  const title = i18n.language === 'es' ? profile?.title_es : profile?.title_en;
 
   const scrollToProjects = () => {
     document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' });
@@ -21,15 +25,15 @@ export const Hero = () => {
           <div className="space-y-6 animate-fade-in">
             <p className="text-primary text-lg font-medium">{t('hero.greeting')}</p>
             <h1 className="text-5xl md:text-7xl font-bold text-foreground">
-              {t('hero.name')}
+              {isLoading ? '...' : profile?.name}
             </h1>
             <h2 className="text-3xl md:text-4xl font-semibold text-muted-foreground">
-              {t('hero.title')}
+              {isLoading ? '...' : title}
             </h2>
             <p className="text-xl text-muted-foreground max-w-lg">
               {t('hero.subtitle')}
             </p>
-            
+
             <div className="flex flex-wrap gap-4 pt-4">
               <Button onClick={scrollToProjects} size="lg" className="group">
                 {t('hero.cta')}
@@ -41,42 +45,33 @@ export const Hero = () => {
             </div>
 
             <div className="flex gap-4 pt-6">
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3 rounded-lg bg-secondary hover:bg-primary hover:text-primary-foreground transition-all hover:shadow-glow"
-              >
-                <Github className="h-6 w-6" />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3 rounded-lg bg-secondary hover:bg-primary hover:text-primary-foreground transition-all hover:shadow-glow"
-              >
-                <Linkedin className="h-6 w-6" />
-              </a>
-              <a
-                href="https://example.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3 rounded-lg bg-secondary hover:bg-primary hover:text-primary-foreground transition-all hover:shadow-glow"
-              >
-                <Globe className="h-6 w-6" />
-              </a>
+              {profile?.github_url && (
+                <a href={profile.github_url} target="_blank" rel="noopener noreferrer"
+                  className="p-3 rounded-lg bg-secondary hover:bg-primary hover:text-primary-foreground transition-all hover:shadow-glow">
+                  <Github className="h-6 w-6" />
+                </a>
+              )}
+              {profile?.linkedin_url && (
+                <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
+                  className="p-3 rounded-lg bg-secondary hover:bg-primary hover:text-primary-foreground transition-all hover:shadow-glow">
+                  <Linkedin className="h-6 w-6" />
+                </a>
+              )}
+              {profile?.website_url && (
+                <a href={profile.website_url} target="_blank" rel="noopener noreferrer"
+                  className="p-3 rounded-lg bg-secondary hover:bg-primary hover:text-primary-foreground transition-all hover:shadow-glow">
+                  <Globe className="h-6 w-6" />
+                </a>
+              )}
             </div>
           </div>
 
-          <div className="relative animate-fade-in">
-            <div className="relative w-full max-w-md mx-auto">
-              <div className="absolute inset-0 bg-gradient-primary rounded-full blur-3xl opacity-20 animate-glow"></div>
-              <img
-                src={profilePhoto}
-                alt="Johan Roberto Rueda"
-                className="relative rounded-2xl shadow-card border-4 border-primary/20 w-full"
-              />
-            </div>
+          <div className="flex justify-center animate-fade-in">
+            <img
+              src={profilePhoto}
+              alt={profile?.name}
+              className="w-80 h-80 rounded-full object-cover border-4 border-primary shadow-glow"
+            />
           </div>
         </div>
       </div>

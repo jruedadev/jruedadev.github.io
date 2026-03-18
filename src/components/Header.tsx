@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun, Menu, X, Globe } from 'lucide-react';
 import {
@@ -8,11 +9,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Logo } from './Logo';
+import { Logo } from '@/components/Logo';
+import { useNavigateToSection } from '@/hooks/useNavigateToSection';
 
 export const Header = () => {
   const { t, i18n } = useTranslation();
-  const [theme, setTheme] = useState< 'light' | 'dark'>('light');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const goToSection = useNavigateToSection();
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleTheme = () => {
@@ -25,9 +30,8 @@ export const Header = () => {
     i18n.changeLanguage(lng);
   };
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    element?.scrollIntoView({ behavior: 'smooth' });
+  const handleNavClick = (id: string) => {
+    goToSection(id);
     setMobileMenuOpen(false);
   };
 
@@ -35,16 +39,28 @@ export const Header = () => {
     { key: 'about', id: 'about' },
     { key: 'experience', id: 'experience' },
     { key: 'skills', id: 'skills' },
-    { key: 'projects', id: 'projects' },
     { key: 'certifications', id: 'certifications' },
   ];
+
+  // Links que van a páginas propias
+  const handleContactClick = () => {
+    navigate('/contact');
+    setMobileMenuOpen(false);
+  };
+
+  const handleProjectsPageClick = () => {
+    navigate('/projects');
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <nav className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <a href="#" className="text-2xl font-bold">
-            <Logo className="h-8 w-8 text-primary" />
+
+          {/* Logo */}
+          <a href="/" className="flex items-center">
+            <Logo />
           </a>
 
           {/* Desktop Navigation */}
@@ -52,16 +68,38 @@ export const Header = () => {
             {navItems.map((item) => (
               <button
                 key={item.key}
-                onClick={() => scrollToSection(item.id)}
-                className="text-foreground hover:text-primary transition-colors"
+                onClick={() => handleNavClick(item.id)}
+                className={`text-foreground hover:text-primary transition-colors ${
+                  location.pathname === '/' &&
+                  location.hash === `#${item.id}`
+                    ? 'text-primary'
+                    : ''
+                }`}
               >
                 {t(`nav.${item.key}`)}
               </button>
             ))}
+            <button
+              onClick={handleProjectsPageClick}
+              className={`text-foreground hover:text-primary transition-colors ${
+                location.pathname === '/projects' ? 'text-primary' : ''
+              }`}
+            >
+              {t('nav.projects')}
+            </button>
+            <button
+              onClick={handleContactClick}
+              className={`text-foreground hover:text-primary transition-colors ${
+                location.pathname === '/contact' ? 'text-primary' : ''
+              }`}
+            >
+              {t('nav.contact')}
+            </button>
           </div>
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
+            {/* Language switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -78,10 +116,16 @@ export const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Theme toggle */}
             <Button variant="ghost" size="icon" onClick={toggleTheme}>
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
             </Button>
 
+            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="icon"
@@ -93,18 +137,34 @@ export const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 animate-fade-in">
+          <div className="md:hidden pt-4 pb-2 space-y-2 border-t border-border mt-4">
             {navItems.map((item) => (
               <button
                 key={item.key}
-                onClick={() => scrollToSection(item.id)}
-                className="block w-full text-left py-3 text-foreground hover:text-primary transition-colors"
+                onClick={() => handleNavClick(item.id)}
+                className="block w-full text-left px-2 py-2 text-foreground hover:text-primary transition-colors"
               >
                 {t(`nav.${item.key}`)}
               </button>
             ))}
+            <button
+              onClick={handleProjectsPageClick}
+              className={`block w-full text-left px-2 py-2 hover:text-primary transition-colors ${
+                location.pathname === '/projects' ? 'text-primary' : 'text-foreground'
+              }`}
+            >
+              {t('nav.projects')}
+            </button>
+            <button
+              onClick={handleContactClick}
+              className={`block w-full text-left px-2 py-2 hover:text-primary transition-colors ${
+                location.pathname === '/contact' ? 'text-primary' : 'text-foreground'
+              }`}
+            >
+              {t('nav.contact')}
+            </button>
           </div>
         )}
       </nav>

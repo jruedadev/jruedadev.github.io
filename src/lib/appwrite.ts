@@ -1,18 +1,20 @@
-import { Client, Databases } from 'appwrite';
+import { Client, Databases, Storage } from 'appwrite';
 
-const client = new Client();
-
-client
+const client = new Client()
   .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT)
   .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID);
 
+export const storage = new Storage(client);
 export const databases = new Databases(client);
 
-export const databaseId = '698ca74b000dfe33e2ce';
-export const collectionId = 'products';
+// Helper para obtener la URL de preview de un archivo
+export const getFilePreviewUrl = (fileId: string, bucketId: string) => {
+  return storage.getFilePreview(bucketId, fileId);
+}
 
-// Optional collection IDs for dynamic content. Set these via .env if you created
-// collections with different IDs in Appwrite. Defaults assume collection names as IDs.
-export const pagesCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_PAGES || 'pages';
-export const sectionsCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_SECTIONS || 'sections';
-export const testimonialsCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_TESTIMONIALS || 'testimonials';
+export const databaseId = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+export const profileCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_PROFILE;
+export const projectsCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_PROJECTS;
+export const skillsCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_SKILLS;
+export const certificationsCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_CERTIFICATIONS;
+export const experiencesCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_EXPERIENCES;
