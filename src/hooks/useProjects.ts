@@ -2,6 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { databases, databaseId, projectsCollectionId } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 
+export interface DiagramItem {
+  file_id: string;
+  label_es: string;
+  label_en: string;
+}
+
 export interface Project {
   $id: string;
   title: string;
@@ -12,6 +18,7 @@ export interface Project {
   demo_url?: string;
   image_ids?: string[];
   category_slugs?: string[];
+  architecture_diagrams?: string[];
   featured: boolean;
   order: number;
   $createdAt: string;

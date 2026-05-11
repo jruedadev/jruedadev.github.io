@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alumnus LMS — Backend Architecture · Johan Rueda</title>
+<style>
+  /* ─── RESET & BASE ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:      #00d4e8;
+    --cyan-dim:  rgba(0,212,232,0.07);
+    --cyan-bd:   rgba(0,212,232,0.22);
+    --purple:    #7c3aed;
+    --purple-dim:rgba(124,58,237,0.08);
+    --purple-bd: rgba(124,58,237,0.28);
+    --sky-dim:   rgba(56,189,248,0.06);
+    --sky-bd:    rgba(56,189,248,0.22);
+    --slate-dim: rgba(255,255,255,0.03);
+    --slate-bd:  rgba(255,255,255,0.09);
+    --bg:        #000;
+    --surface:   #0a0a0a;
+    --text:      #e2e8f0;
+    --text-muted:#475569;
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px 64px;
+  }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header {
+    text-align: center;
+    margin-bottom: 40px;
+    max-width: 720px;
+  }
+  .page-series {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan-bd);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 18px;
+  }
+  .page-series .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); opacity: 0.5; }
+  .page-title {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .page-title em { color: var(--cyan); font-style: normal; }
+  .page-desc {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* ─── DIAGRAM CARD ─── */
+  .diagram-card {
+    width: 100%;
+    max-width: 1080px;
+    background: linear-gradient(160deg, #000000 0%, #030f18 50%, #001010 100%);
+    border: 1px solid rgba(0,212,232,0.14);
+    border-radius: 20px;
+    padding: 36px 40px;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.5),
+      0 40px 80px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  /* Ambient glow top-right */
+  .diagram-card::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,232,0.055) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  /* Ambient glow bottom-left */
+  .diagram-card::after {
+    content: '';
+    position: absolute;
+    bottom: -140px; left: -60px;
+    width: 460px; height: 460px;
+    background: radial-gradient(circle, rgba(124,58,237,0.04) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  /* ─── DIAGRAM HEADER ─── */
+  .diag-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+  }
+  .diag-title-block {}
+  .diag-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.4px;
+  }
+  .diag-title .accent { color: var(--cyan); }
+  .diag-meta {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.18);
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+  }
+  .diag-badge {
+    flex-shrink: 0;
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan-bd);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    white-space: nowrap;
+  }
+
+  /* ─── AUTH BAND ─── */
+  .auth-band {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: var(--purple-dim);
+    border: 1px solid var(--purple-bd);
+    border-radius: 10px;
+    padding: 9px 14px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .auth-band-label {
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.55);
+    margin-right: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .auth-sep { width: 1px; height: 18px; background: rgba(124,58,237,0.2); margin: 0 4px; }
+  .ap { /* auth pill */
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 5px;
+    padding: 3px 9px;
+    font-size: 0.62rem;
+    color: #c4b5fd;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .mp { /* middleware pill */
+    background: rgba(251,191,36,0.06);
+    border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 5px;
+    padding: 3px 9px;
+    font-size: 0.62rem;
+    color: #fcd34d;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ─── HIERARCHY ─── */
+  .hierarchy {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .layer-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .layer-num {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    min-width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    padding: 0 4px;
+  }
+  .layer-num.l1 { color: rgba(167,139,250,0.35); }
+  .layer-num.l2 { color: rgba(56,189,248,0.3); }
+  .layer-num.l3 { color: rgba(255,255,255,0.15); }
+  .layer-num.l4 { color: rgba(0,212,232,0.4); }
+
+  .layer-body {
+    flex: 1;
+    border-radius: 11px;
+    padding: 14px 18px;
+    border: 1px solid;
+    margin-left: 10px;
+  }
+  .layer-body.l1 { background: rgba(124,58,237,0.05); border-color: rgba(124,58,237,0.22); }
+  .layer-body.l2 { background: rgba(56,189,248,0.04); border-color: rgba(56,189,248,0.18); }
+  .layer-body.l3 { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.07); }
+  .layer-body.l4 { background: rgba(0,212,232,0.04); border-color: rgba(0,212,232,0.22); }
+
+  .layer-title {
+    font-size: 0.57rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .l1 .layer-title { color: rgba(167,139,250,0.6); }
+  .l2 .layer-title { color: rgba(56,189,248,0.55); }
+  .l3 .layer-title { color: rgba(255,255,255,0.28); }
+  .l4 .layer-title { color: rgba(0,212,232,0.6); }
+
+  .modules-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  /* Module card */
+  .mc {
+    border-radius: 9px;
+    padding: 10px 13px;
+    border: 1px solid;
+    min-width: 110px;
+    flex-shrink: 0;
+  }
+  .mc-name {
+    font-size: 0.73rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    white-space: nowrap;
+  }
+  .mc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+  .tag {
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 0.54rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* L1 module colors */
+  .mc.l1 { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.28); }
+  .mc.l1 .mc-name { color: #c4b5fd; }
+  .mc.l1 .tag { background: rgba(124,58,237,0.1); color: rgba(196,181,253,0.65); }
+
+  /* L2 module colors */
+  .mc.l2 { background: rgba(56,189,248,0.06); border-color: rgba(56,189,248,0.22); }
+  .mc.l2 .mc-name { color: #7dd3fc; }
+  .mc.l2 .tag { background: rgba(56,189,248,0.08); color: rgba(125,211,252,0.6); }
+
+  /* L3 module colors */
+  .mc.l3 { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.09); }
+  .mc.l3 .mc-name { color: rgba(255,255,255,0.72); }
+  .mc.l3 .tag { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.38); }
+
+  /* L4 module colors */
+  .mc.l4 { background: rgba(0,212,232,0.07); border-color: rgba(0,212,232,0.3); }
+  .mc.l4 .mc-name { color: #00d4e8; }
+  .mc.l4 .tag { background: rgba(0,212,232,0.07); color: rgba(0,212,232,0.6); }
+
+  /* Vertical connector between layers */
+  .vconn {
+    padding-left: 34px;
+    margin: 4px 0;
+  }
+  .vconn-line {
+    width: 1px;
+    height: 12px;
+    background: rgba(0,212,232,0.1);
+    margin-left: 14px;
+  }
+
+  /* ─── CROSS-CUTTING CONCERNS ─── */
+  .cross-section {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative;
+    z-index: 1;
+  }
+  @media (max-width: 780px) {
+    .cross-section { grid-template-columns: 1fr 1fr; }
+  }
+
+  .cc-card {
+    border-radius: 9px;
+    padding: 10px 12px;
+    border: 1px solid;
+  }
+  .cc-title {
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .cc-pills { display: flex; flex-wrap: wrap; gap: 3px; }
+  .cp {
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 0.56rem;
+    font-weight: 600;
+  }
+
+  .cc-card.notif  { background: rgba(52,211,153,0.04);  border-color: rgba(52,211,153,0.18); }
+  .cc-card.notif  .cc-title { color: rgba(52,211,153,0.6); }
+  .cc-card.notif  .cp { background: rgba(52,211,153,0.07); color: rgba(52,211,153,0.65); }
+
+  .cc-card.events { background: rgba(251,191,36,0.04);  border-color: rgba(251,191,36,0.16); }
+  .cc-card.events .cc-title { color: rgba(251,191,36,0.55); }
+  .cc-card.events .cp { background: rgba(251,191,36,0.06); color: rgba(251,191,36,0.6); }
+
+  .cc-card.files  { background: rgba(167,139,250,0.04); border-color: rgba(167,139,250,0.16); }
+  .cc-card.files  .cc-title { color: rgba(167,139,250,0.55); }
+  .cc-card.files  .cp { background: rgba(167,139,250,0.07); color: rgba(167,139,250,0.6); }
+
+  .cc-card.conf   { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.07); }
+  .cc-card.conf   .cc-title { color: rgba(255,255,255,0.25); }
+  .cc-card.conf   .cp { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.38); }
+
+  /* ─── INFRASTRUCTURE ─── */
+  .infra-section {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative;
+    z-index: 1;
+  }
+  .infra-label {
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.15);
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+  .it {
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-size: 0.61rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .it.pg  { background: rgba(56,189,248,0.07);  border: 1px solid rgba(56,189,248,0.22);  color: #7dd3fc; }
+  .it.rd  { background: rgba(239,68,68,0.07);   border: 1px solid rgba(239,68,68,0.22);   color: #fca5a5; }
+  .it.s3  { background: rgba(251,191,36,0.07);  border: 1px solid rgba(251,191,36,0.22);  color: #fcd34d; }
+  .it.k8s { background: rgba(52,211,153,0.07);  border: 1px solid rgba(52,211,153,0.22);  color: #6ee7b7; }
+  .it.q   { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);  color: rgba(255,255,255,0.38); }
+  .it.sp  { background: rgba(124,58,237,0.07);  border: 1px solid rgba(124,58,237,0.22);  color: #c4b5fd; }
+  .it.do  { background: rgba(0,212,232,0.07);   border: 1px solid rgba(0,212,232,0.22);   color: #00d4e8; }
+
+  /* ─── DIAGRAM FOOTER ─── */
+  .diag-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative;
+    z-index: 1;
+    flex-wrap: wrap;
+  }
+  .stack-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .sp {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 2px 9px;
+    font-size: 0.56rem;
+    color: rgba(255,255,255,0.27);
+  }
+  .diag-author { font-size: 0.62rem; color: rgba(0,212,232,0.3); font-weight: 800; letter-spacing: 0.5px; white-space: nowrap; }
+
+  /* ─── SERIES NAV ─── */
+  .series-nav {
+    display: flex;
+    gap: 8px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1080px;
+    width: 100%;
+  }
+  .series-item {
+    flex: 1;
+    min-width: 160px;
+    max-width: 240px;
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.02);
+  }
+  .series-item.active {
+    border-color: rgba(0,212,232,0.3);
+    background: rgba(0,212,232,0.04);
+  }
+  .series-item-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    font-size: 0.6rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .series-item.active .series-item-num { background: rgba(0,212,232,0.12); color: #00d4e8; border: 1px solid rgba(0,212,232,0.3); }
+  .series-item .series-item-num { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.1); }
+  .series-item h4 { font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.35); margin-bottom: 3px; }
+  .series-item.active h4 { color: #00d4e8; }
+  .series-item p { font-size: 0.62rem; color: var(--text-muted); line-height: 1.5; }
+</style>
+<style>
+  [data-theme="light"] {
+    --bg:        #f8fafc;
+    --surface:   #ffffff;
+    --text:      #0f172a;
+    --text-muted:#64748b;
+    --slate-dim: rgba(0,0,0,0.03);
+    --slate-bd:  rgba(0,0,0,0.09);
+    --cyan-dim:  rgba(0,180,200,0.08);
+    --cyan-bd:   rgba(0,180,200,0.30);
+    --purple-dim:rgba(124,58,237,0.07);
+    --purple-bd: rgba(124,58,237,0.25);
+    --sky-dim:   rgba(14,165,233,0.07);
+    --sky-bd:    rgba(14,165,233,0.25);
+  }
+</style>
+<script>
+  window.addEventListener("message", function(e) {
+    if (e.data && (e.data.theme === "light" || e.data.theme === "dark")) {
+      document.documentElement.setAttribute("data-theme", e.data.theme);
+    }
+  });
+</script>
+</head>
+<body>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="page-series">
+    <div class="dot"></div>
+    Alumnus LMS · Arquitectura del Sistema · 1 de 4
+    <div class="dot"></div>
+  </div>
+  <h1 class="page-title"><em>Backend</em> Architecture<br>alms-core</h1>
+  <p class="page-desc">
+    API REST multi-tenant construida en Laravel 8 con 14 módulos, arquitectura orientada a eventos,
+    autenticación dual (Sanctum + JWT) y despliegue en Kubernetes sobre DigitalOcean.
+  </p>
+</header>
+
+<!-- DIAGRAM -->
+<div class="diagram-card">
+
+  <!-- Header -->
+  <div class="diag-header">
+    <div class="diag-title-block">
+      <div class="diag-title">
+        <span class="accent">{</span> Alumnus LMS <span class="accent">}</span> — Backend Architecture
+      </div>
+      <div class="diag-meta">alms-core · Laravel 8 · REST API · Multi-tenant SaaS · 14 módulos · 40+ controllers · Event-Driven</div>
+    </div>
+    <div class="diag-badge">1 / 4 · Backend</div>
+  </div>
+
+  <!-- AUTH BAND -->
+  <div class="auth-band">
+    <span class="auth-band-label">Auth &amp; Security</span>
+    <span class="ap">Laravel Sanctum</span>
+    <span class="ap">JWT · firebase/php-jwt</span>
+    <span class="ap">Spatie Roles &amp; Permissions</span>
+    <div class="auth-sep"></div>
+    <span class="mp">VerifyUserCollabspace</span>
+    <span class="mp">HandleStorageBucket</span>
+    <span class="mp">SetLocaleFromUser</span>
+    <span class="mp">MonitorStudent</span>
+    <span class="mp">ValidateOwner</span>
+  </div>
+
+  <!-- HIERARCHY -->
+  <div class="hierarchy">
+
+    <!-- L1 -->
+    <div class="layer-row">
+      <div class="layer-num l1">L 1</div>
+      <div class="layer-body l1">
+        <div class="layer-title">Capa Base — Tenant &amp; Billing</div>
+        <div class="modules-row">
+
+          <div class="mc l1">
+            <div class="mc-name">Collabspace</div>
+            <div class="mc-tags">
+              <span class="tag">Aulas virtuales</span>
+              <span class="tag">Documentos</span>
+              <span class="tag">Períodos fiscales</span>
+              <span class="tag">Content Descriptors</span>
+              <span class="tag">Invitaciones</span>
+              <span class="tag">Términos</span>
+            </div>
+          </div>
+
+          <div class="mc l1">
+            <div class="mc-name">Licenses &amp; SaaS</div>
+            <div class="mc-tags">
+              <span class="tag">Plans</span>
+              <span class="tag">Customers</span>
+              <span class="tag">Licenses</span>
+            </div>
+          </div>
+
+          <div class="mc l1">
+            <div class="mc-name">Accounts &amp; Users</div>
+            <div class="mc-tags">
+              <span class="tag">Accounts</span>
+              <span class="tag">Users</span>
+              <span class="tag">Roles</span>
+              <span class="tag">Enrollment</span>
+              <span class="tag">Import CSV</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L2 -->
+    <div class="layer-row">
+      <div class="layer-num l2">L 2</div>
+      <div class="layer-body l2">
+        <div class="layer-title">Comunidades de Aprendizaje</div>
+        <div class="modules-row">
+
+          <div class="mc l2">
+            <div class="mc-name">Learning Communities</div>
+            <div class="mc-tags">
+              <span class="tag">Classes</span>
+              <span class="tag">Subjects</span>
+              <span class="tag">Instructors</span>
+              <span class="tag">SubjectUsers</span>
+            </div>
+          </div>
+
+          <div class="mc l2">
+            <div class="mc-name">Network &amp; Social</div>
+            <div class="mc-tags">
+              <span class="tag">Posts / Groups</span>
+              <span class="tag">Threads</span>
+              <span class="tag">Members</span>
+              <span class="tag">Broadcast</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L3 -->
+    <div class="layer-row">
+      <div class="layer-num l3">L 3</div>
+      <div class="layer-body l3">
+        <div class="layer-title">Herramientas Académicas</div>
+        <div class="modules-row">
+
+          <div class="mc l3">
+            <div class="mc-name">LearningLab</div>
+            <div class="mc-tags">
+              <span class="tag">Libraries</span>
+              <span class="tag">Units</span>
+              <span class="tag">Items</span>
+              <span class="tag">Elements</span>
+              <span class="tag">Objects</span>
+              <span class="tag">Queue: UploadItem</span>
+            </div>
+          </div>
+
+          <div class="mc l3">
+            <div class="mc-name">Evaluate</div>
+            <div class="mc-tags">
+              <span class="tag">Activities</span>
+              <span class="tag">Attempts</span>
+              <span class="tag">Submissions</span>
+              <span class="tag">Auto-score</span>
+            </div>
+          </div>
+
+          <div class="mc l3">
+            <div class="mc-name">Planner</div>
+            <div class="mc-tags">
+              <span class="tag">Tasks</span>
+              <span class="tag">Members</span>
+              <span class="tag">8 Services</span>
+            </div>
+          </div>
+
+          <div class="mc l3">
+            <div class="mc-name">Syllabus</div>
+            <div class="mc-tags">
+              <span class="tag">Programa</span>
+              <span class="tag">5 Services</span>
+            </div>
+          </div>
+
+          <div class="mc l3">
+            <div class="mc-name">Tutorials</div>
+            <div class="mc-tags">
+              <span class="tag">Video Player</span>
+              <span class="tag">CDN</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L4 -->
+    <div class="layer-row">
+      <div class="layer-num l4">L 4</div>
+      <div class="layer-body l4">
+        <div class="layer-title">Gradebook — Sistema de Evaluación Académica</div>
+        <div class="modules-row">
+
+          <div class="mc l4">
+            <div class="mc-name">Qualifications</div>
+            <div class="mc-tags">
+              <span class="tag">Grades</span>
+              <span class="tag">Scales</span>
+              <span class="tag">Periods</span>
+              <span class="tag">Qualitative</span>
+              <span class="tag">Descriptors</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">Attendance</div>
+            <div class="mc-tags">
+              <span class="tag">Assistance</span>
+              <span class="tag">Comments</span>
+              <span class="tag">Settings</span>
+              <span class="tag">Available days</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">Observations</div>
+            <div class="mc-tags">
+              <span class="tag">By student</span>
+              <span class="tag">By admin</span>
+              <span class="tag">Category descriptors</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">Reports</div>
+            <div class="mc-tags">
+              <span class="tag">Live Report</span>
+              <span class="tag">Individual</span>
+              <span class="tag">StudentInsights</span>
+              <span class="tag">Insights</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">Submissions</div>
+            <div class="mc-tags">
+              <span class="tag">Student Submit</span>
+              <span class="tag">Evaluate Link</span>
+              <span class="tag">Events</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /hierarchy -->
+
+  <!-- CROSS-CUTTING CONCERNS -->
+  <div class="cross-section">
+
+    <div class="cc-card notif">
+      <div class="cc-title">Notifications &amp; Feed</div>
+      <div class="cc-pills">
+        <span class="cp">Notifications</span>
+        <span class="cp">Announcements</span>
+        <span class="cp">Feed Activity</span>
+        <span class="cp">NotifControl</span>
+      </div>
+    </div>
+
+    <div class="cc-card events">
+      <div class="cc-title">Events &amp; Listeners (14+)</div>
+      <div class="cc-pills">
+        <span class="cp">Collabspace/Created</span>
+        <span class="cp">Gradebook/Saved</span>
+        <span class="cp">SubjectUser/Saved</span>
+        <span class="cp">Evaluate/Attempt</span>
+        <span class="cp">Notification/*</span>
+        <span class="cp">LibraryObject</span>
+      </div>
+    </div>
+
+    <div class="cc-card files">
+      <div class="cc-title">File Management</div>
+      <div class="cc-pills">
+        <span class="cp">Filemanager Helper</span>
+        <span class="cp">S3 / Local driver</span>
+        <span class="cp">Queue: UploadItem</span>
+        <span class="cp">Protected Docs</span>
+      </div>
+    </div>
+
+    <div class="cc-card conf">
+      <div class="cc-title">Settings &amp; Config</div>
+      <div class="cc-pills">
+        <span class="cp">UserSettings</span>
+        <span class="cp">GradebookSettings</span>
+        <span class="cp">Localization</span>
+        <span class="cp">HealthCheck</span>
+      </div>
+    </div>
+
+  </div><!-- /cross-section -->
+
+  <!-- INFRASTRUCTURE -->
+  <div class="infra-section">
+    <span class="infra-label">Infrastructure</span>
+    <span class="it pg">PostgreSQL 14</span>
+    <span class="it rd">Redis · Cache &amp; Queue</span>
+    <span class="it s3">S3 · DigitalOcean Spaces</span>
+    <span class="it k8s">Kubernetes · DigitalOcean</span>
+    <span class="it q">Queue Workers · high / med / low</span>
+    <span class="it sp">Spatie Permission</span>
+    <span class="it do">SocketIO Client</span>
+  </div>
+
+  <!-- Diagram footer -->
+  <div class="diag-footer">
+    <div class="stack-pills">
+      <span class="sp">PHP 8 · Laravel 8</span>
+      <span class="sp">PostgreSQL 14</span>
+      <span class="sp">Redis</span>
+      <span class="sp">DigitalOcean · Kubernetes</span>
+      <span class="sp">Sanctum · JWT · Spatie</span>
+      <span class="sp">Event-Driven Architecture</span>
+      <span class="sp">Multi-tenant SaaS</span>
+    </div>
+    <div class="diag-author">jrueda.dev</div>
+  </div>
+
+</div><!-- /diagram-card -->
+
+<!-- SERIES NAV -->
+<nav class="series-nav">
+  <div class="series-item active">
+    <div class="series-item-num">1</div>
+    <h4>Backend · alms-core</h4>
+    <p>Módulos Laravel 8, jerarquía de dominio, infraestructura y autenticación.</p>
+  </div>
+  <div class="series-item">
+    <div class="series-item-num">2</div>
+    <h4>Frontend · alms-web</h4>
+    <p>Vue.js, estructura de vistas, estado y comunicación con la API.</p>
+  </div>
+  <div class="series-item">
+    <div class="series-item-num">3</div>
+    <h4>Tiempo real · alms-socket</h4>
+    <p>Socket.IO server, canales, eventos y listeners en tiempo real.</p>
+  </div>
+  <div class="series-item">
+    <div class="series-item-num">4</div>
+    <h4>IA · N8N + Gemini</h4>
+    <p>Flujo de análisis inteligente de estudiantes con LLM.</p>
+  </div>
+</nav>
+
+</body>
+</html>

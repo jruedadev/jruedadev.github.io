@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alumnus LMS — Frontend Architecture · Johan Rueda</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:     #00d4e8;
+    --cyan-dim: rgba(0,212,232,0.07);
+    --cyan-bd:  rgba(0,212,232,0.22);
+    --purple:   #7c3aed;
+    --text-muted: #475569;
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #000;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px 64px;
+  }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header { text-align: center; margin-bottom: 40px; max-width: 720px; }
+  .page-series {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--cyan-dim); border: 1px solid var(--cyan-bd);
+    border-radius: 20px; padding: 4px 14px;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--cyan); margin-bottom: 18px;
+  }
+  .page-series .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); opacity: 0.5; }
+  .page-title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 10px; }
+  .page-title em { color: var(--cyan); font-style: normal; }
+  .page-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; }
+
+  /* ─── DIAGRAM CARD ─── */
+  .diagram-card {
+    width: 100%; max-width: 1080px;
+    background: linear-gradient(160deg, #000000 0%, #030f18 50%, #001010 100%);
+    border: 1px solid rgba(0,212,232,0.14);
+    border-radius: 20px; padding: 36px 40px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .diagram-card::before {
+    content: ''; position: absolute; top: -120px; right: -120px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,232,0.055) 0%, transparent 65%); pointer-events: none;
+  }
+  .diagram-card::after {
+    content: ''; position: absolute; bottom: -140px; left: -60px;
+    width: 460px; height: 460px;
+    background: radial-gradient(circle, rgba(124,58,237,0.04) 0%, transparent 65%); pointer-events: none;
+  }
+
+  /* ─── DIAGRAM HEADER ─── */
+  .diag-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 26px; position: relative; z-index: 1; }
+  .diag-title { font-size: 1.15rem; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
+  .diag-title .accent { color: var(--cyan); }
+  .diag-meta { font-size: 0.6rem; color: rgba(255,255,255,0.18); font-family: 'Cascadia Code', 'Fira Code', monospace; margin-top: 4px; }
+  .diag-badge {
+    flex-shrink: 0; background: var(--cyan-dim); border: 1px solid var(--cyan-bd);
+    border-radius: 20px; padding: 5px 14px; font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--cyan); white-space: nowrap;
+  }
+
+  /* ─── TECH BAND ─── */
+  .tech-band {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    background: rgba(0,212,232,0.04); border: 1px solid rgba(0,212,232,0.18);
+    border-radius: 10px; padding: 9px 14px; margin-bottom: 16px;
+    position: relative; z-index: 1;
+  }
+  .tb-label { font-size: 0.56rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(0,212,232,0.45); margin-right: 6px; white-space: nowrap; flex-shrink: 0; }
+  .tb-sep { width: 1px; height: 18px; background: rgba(0,212,232,0.15); margin: 0 4px; }
+  .tp { border-radius: 5px; padding: 3px 9px; font-size: 0.62rem; font-weight: 600; white-space: nowrap; }
+  .tp.core   { background: rgba(0,212,232,0.08);  border: 1px solid rgba(0,212,232,0.25);  color: #00d4e8; }
+  .tp.state  { background: rgba(124,58,237,0.09); border: 1px solid rgba(124,58,237,0.27); color: #c4b5fd; }
+  .tp.ui     { background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.22); color: #fcd34d; }
+
+  /* ─── HIERARCHY ─── */
+  .hierarchy { display: flex; flex-direction: column; gap: 0; position: relative; z-index: 1; }
+
+  .layer-row { display: flex; align-items: stretch; }
+  .layer-row + .layer-row { margin-top: 6px; }
+
+  .layer-num {
+    writing-mode: vertical-rl; transform: rotate(180deg);
+    font-size: 0.5rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    min-width: 24px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.05); padding: 0 4px;
+  }
+  .layer-num.l1 { color: rgba(167,139,250,0.35); }
+  .layer-num.l2 { color: rgba(56,189,248,0.30); }
+  .layer-num.l3 { color: rgba(255,255,255,0.15); }
+  .layer-num.l4 { color: rgba(0,212,232,0.38); }
+
+  .layer-body { flex: 1; border-radius: 11px; padding: 14px 18px; border: 1px solid; margin-left: 10px; }
+  .layer-body.l1 { background: rgba(124,58,237,0.05); border-color: rgba(124,58,237,0.22); }
+  .layer-body.l2 { background: rgba(56,189,248,0.04); border-color: rgba(56,189,248,0.18); }
+  .layer-body.l3 { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.07); }
+  .layer-body.l4 { background: rgba(0,212,232,0.04); border-color: rgba(0,212,232,0.22); }
+
+  .layer-title { font-size: 0.57rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; }
+  .l1 .layer-title { color: rgba(167,139,250,0.60); }
+  .l2 .layer-title { color: rgba(56,189,248,0.55); }
+  .l3 .layer-title { color: rgba(255,255,255,0.28); }
+  .l4 .layer-title { color: rgba(0,212,232,0.60); }
+
+  .modules-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+
+  /* Module cards */
+  .mc { border-radius: 9px; padding: 10px 13px; border: 1px solid; min-width: 108px; flex-shrink: 0; }
+  .mc-name { font-size: 0.73rem; font-weight: 700; margin-bottom: 6px; white-space: nowrap; }
+  .mc-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+  .tag { border-radius: 3px; padding: 2px 6px; font-size: 0.54rem; font-weight: 600; white-space: nowrap; }
+
+  .mc.l1 { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.28); }
+  .mc.l1 .mc-name { color: #c4b5fd; }
+  .mc.l1 .tag { background: rgba(124,58,237,0.10); color: rgba(196,181,253,0.65); }
+
+  .mc.l2 { background: rgba(56,189,248,0.06); border-color: rgba(56,189,248,0.22); }
+  .mc.l2 .mc-name { color: #7dd3fc; }
+  .mc.l2 .tag { background: rgba(56,189,248,0.08); color: rgba(125,211,252,0.60); }
+
+  .mc.l3 { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.09); }
+  .mc.l3 .mc-name { color: rgba(255,255,255,0.72); }
+  .mc.l3 .tag { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.38); }
+
+  .mc.l4 { background: rgba(0,212,232,0.07); border-color: rgba(0,212,232,0.30); }
+  .mc.l4 .mc-name { color: #00d4e8; }
+  .mc.l4 .tag { background: rgba(0,212,232,0.07); color: rgba(0,212,232,0.60); }
+
+  /* Vertical connector */
+  .vconn { padding-left: 34px; margin: 4px 0; }
+  .vconn-line { width: 1px; height: 12px; background: rgba(0,212,232,0.10); margin-left: 14px; }
+
+  /* ─── CROSS-CUTTING ─── */
+  .cross-section {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1;
+  }
+  @media (max-width: 780px) { .cross-section { grid-template-columns: 1fr 1fr; } }
+
+  .cc-card { border-radius: 9px; padding: 10px 12px; border: 1px solid; }
+  .cc-title { font-size: 0.56rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; }
+  .cc-pills { display: flex; flex-wrap: wrap; gap: 3px; }
+  .cp { border-radius: 3px; padding: 2px 6px; font-size: 0.56rem; font-weight: 600; }
+
+  .cc-card.state  { background: rgba(52,211,153,0.04);  border-color: rgba(52,211,153,0.18); }
+  .cc-card.state  .cc-title { color: rgba(52,211,153,0.58); }
+  .cc-card.state  .cp { background: rgba(52,211,153,0.07); color: rgba(52,211,153,0.65); }
+
+  .cc-card.api    { background: rgba(251,191,36,0.04);  border-color: rgba(251,191,36,0.16); }
+  .cc-card.api    .cc-title { color: rgba(251,191,36,0.55); }
+  .cc-card.api    .cp { background: rgba(251,191,36,0.06); color: rgba(251,191,36,0.62); }
+
+  .cc-card.rt     { background: rgba(239,68,68,0.04);   border-color: rgba(239,68,68,0.15); }
+  .cc-card.rt     .cc-title { color: rgba(239,68,68,0.55); }
+  .cc-card.rt     .cp { background: rgba(239,68,68,0.06); color: rgba(239,68,68,0.62); }
+
+  .cc-card.libs   { background: rgba(167,139,250,0.04); border-color: rgba(167,139,250,0.16); }
+  .cc-card.libs   .cc-title { color: rgba(167,139,250,0.55); }
+  .cc-card.libs   .cp { background: rgba(167,139,250,0.07); color: rgba(167,139,250,0.62); }
+
+  /* ─── INFRA / TOOLING ─── */
+  .infra-section {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1;
+  }
+  .infra-label { font-size: 0.54rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.15); margin-right: 6px; flex-shrink: 0; }
+  .it { padding: 3px 9px; border-radius: 4px; font-size: 0.61rem; font-weight: 700; white-space: nowrap; }
+  .it.v  { background: rgba(52,211,153,0.07);  border: 1px solid rgba(52,211,153,0.22);  color: #6ee7b7; }
+  .it.vt { background: rgba(0,212,232,0.07);   border: 1px solid rgba(0,212,232,0.22);   color: #00d4e8; }
+  .it.vr { background: rgba(56,189,248,0.07);  border: 1px solid rgba(56,189,248,0.22);  color: #7dd3fc; }
+  .it.ax { background: rgba(251,191,36,0.07);  border: 1px solid rgba(251,191,36,0.22);  color: #fcd34d; }
+  .it.pm { background: rgba(124,58,237,0.07);  border: 1px solid rgba(124,58,237,0.22);  color: #c4b5fd; }
+  .it.sk { background: rgba(239,68,68,0.07);   border: 1px solid rgba(239,68,68,0.22);   color: #fca5a5; }
+
+  /* ─── DIAGRAM FOOTER ─── */
+  .diag-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    margin-top: 18px; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1; flex-wrap: wrap;
+  }
+  .stack-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .sp { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 2px 9px; font-size: 0.56rem; color: rgba(255,255,255,0.27); }
+  .diag-author { font-size: 0.62rem; color: rgba(0,212,232,0.30); font-weight: 800; letter-spacing: 0.5px; white-space: nowrap; }
+
+  /* ─── SERIES NAV ─── */
+  .series-nav { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; justify-content: center; max-width: 1080px; width: 100%; }
+  .series-item { flex: 1; min-width: 160px; max-width: 240px; border-radius: 10px; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.02); }
+  .series-item.active { border-color: rgba(0,212,232,0.30); background: rgba(0,212,232,0.04); }
+  .series-item-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 0.6rem; font-weight: 800; margin-bottom: 6px; }
+  .series-item.active .series-item-num { background: rgba(0,212,232,0.12); color: #00d4e8; border: 1px solid rgba(0,212,232,0.30); }
+  .series-item .series-item-num { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.30); border: 1px solid rgba(255,255,255,0.10); }
+  .series-item h4 { font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.35); margin-bottom: 3px; }
+  .series-item.active h4 { color: #00d4e8; }
+  .series-item p { font-size: 0.62rem; color: var(--text-muted); line-height: 1.5; }
+</style>
+<style>
+  [data-theme="light"] {
+    --bg:        #f8fafc;
+    --surface:   #ffffff;
+    --text:      #0f172a;
+    --text-muted:#64748b;
+    --slate-dim: rgba(0,0,0,0.03);
+    --slate-bd:  rgba(0,0,0,0.09);
+    --cyan-dim:  rgba(0,180,200,0.08);
+    --cyan-bd:   rgba(0,180,200,0.30);
+    --purple-dim:rgba(124,58,237,0.07);
+    --purple-bd: rgba(124,58,237,0.25);
+    --sky-dim:   rgba(14,165,233,0.07);
+    --sky-bd:    rgba(14,165,233,0.25);
+  }
+</style>
+<script>
+  window.addEventListener("message", function(e) {
+    if (e.data && (e.data.theme === "light" || e.data.theme === "dark")) {
+      document.documentElement.setAttribute("data-theme", e.data.theme);
+    }
+  });
+</script>
+</head>
+<body>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="page-series">
+    <div class="dot"></div>
+    Alumnus LMS · Arquitectura del Sistema · 2 de 4
+    <div class="dot"></div>
+  </div>
+  <h1 class="page-title"><em>Frontend</em> Architecture<br>alms-web</h1>
+  <p class="page-desc">
+    SPA construida en Vue.js 3 con Composition API, 31 vistas organizadas por dominio,
+    94 componentes reutilizables, estado global con Vuex 4 y comunicación en tiempo real vía Socket.IO.
+  </p>
+</header>
+
+<!-- DIAGRAM -->
+<div class="diagram-card">
+
+  <!-- Header -->
+  <div class="diag-header">
+    <div>
+      <div class="diag-title">
+        <span class="accent">{</span> Alumnus LMS <span class="accent">}</span> — Frontend Architecture
+      </div>
+      <div class="diag-meta">alms-web · Vue 3.2 · Composition API · 31 vistas · 94 componentes · 13 módulos API · 66+ rutas</div>
+    </div>
+    <div class="diag-badge">2 / 4 · Frontend</div>
+  </div>
+
+  <!-- TECH BAND -->
+  <div class="tech-band">
+    <span class="tb-label">Core Stack</span>
+    <span class="tp core">Vue.js 3.2</span>
+    <span class="tp core">Vite 5</span>
+    <span class="tp core">Composition API</span>
+    <div class="tb-sep"></div>
+    <span class="tp state">Vuex 4</span>
+    <span class="tp state">Vue Router 4</span>
+    <span class="tp state">Axios 1.1</span>
+    <div class="tb-sep"></div>
+    <span class="tp ui">PrimeVue 4 · Aura</span>
+    <span class="tp ui">SASS</span>
+    <span class="tp ui">i18n · EN / ES</span>
+  </div>
+
+  <!-- HIERARCHY -->
+  <div class="hierarchy">
+
+    <!-- L1: Entry & Auth -->
+    <div class="layer-row">
+      <div class="layer-num l1">L 1</div>
+      <div class="layer-body l1">
+        <div class="layer-title">Entry, Autenticación &amp; Bootstrap</div>
+        <div class="modules-row">
+
+          <div class="mc l1">
+            <div class="mc-name">Auth Views (5)</div>
+            <div class="mc-tags">
+              <span class="tag">Login</span>
+              <span class="tag">Register</span>
+              <span class="tag">RegisterEmail</span>
+              <span class="tag">ForgotPassword</span>
+              <span class="tag">ResetPassword</span>
+            </div>
+          </div>
+
+          <div class="mc l1">
+            <div class="mc-name">Route Guard</div>
+            <div class="mc-tags">
+              <span class="tag">beforeEach hook</span>
+              <span class="tag">Token · localStorage</span>
+              <span class="tag">notAuthorize meta</span>
+              <span class="tag">/ → /login redirect</span>
+              <span class="tag">UserBlocked status</span>
+            </div>
+          </div>
+
+          <div class="mc l1">
+            <div class="mc-name">App Bootstrap</div>
+            <div class="mc-tags">
+              <span class="tag">main.js</span>
+              <span class="tag">Socket.IO init</span>
+              <span class="tag">Vuex hydration</span>
+              <span class="tag">i18n setup</span>
+              <span class="tag">PrimeVue register</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L2: Domain Views -->
+    <div class="layer-row">
+      <div class="layer-num l2">L 2</div>
+      <div class="layer-body l2">
+        <div class="layer-title">Vistas por Dominio — 31 vistas</div>
+        <div class="modules-row">
+
+          <div class="mc l2">
+            <div class="mc-name">LearningLab (6)</div>
+            <div class="mc-tags">
+              <span class="tag">LearningLab</span>
+              <span class="tag">Classes</span>
+              <span class="tag">Subjects</span>
+              <span class="tag">Program</span>
+              <span class="tag">Unit</span>
+              <span class="tag">Material</span>
+            </div>
+          </div>
+
+          <div class="mc l2">
+            <div class="mc-name">Gradebook (3)</div>
+            <div class="mc-tags">
+              <span class="tag">Gradebook</span>
+              <span class="tag">ActivityPage</span>
+              <span class="tag">RubricPage</span>
+            </div>
+          </div>
+
+          <div class="mc l2">
+            <div class="mc-name">Evaluate (8)</div>
+            <div class="mc-tags">
+              <span class="tag">EvaluateAdmin</span>
+              <span class="tag">EvaluateStudent</span>
+              <span class="tag">MultipleChoice</span>
+              <span class="tag">AssessmentAdmin</span>
+              <span class="tag">AnswerEvaluate</span>
+              <span class="tag">Assignment</span>
+              <span class="tag">AssignmentEval</span>
+              <span class="tag">CreateOption</span>
+            </div>
+          </div>
+
+          <div class="mc l2">
+            <div class="mc-name">Reports (4)</div>
+            <div class="mc-tags">
+              <span class="tag">GeneratedReport</span>
+              <span class="tag">OverallReport</span>
+              <span class="tag">GroupReport</span>
+              <span class="tag">UserReport</span>
+            </div>
+          </div>
+
+          <div class="mc l2">
+            <div class="mc-name">Network &amp; Collab (7)</div>
+            <div class="mc-tags">
+              <span class="tag">Network</span>
+              <span class="tag">NetworkSocial</span>
+              <span class="tag">CollabSettings</span>
+              <span class="tag">CollabCreate</span>
+              <span class="tag">CollabAdmin</span>
+              <span class="tag">AcademicAlerts</span>
+              <span class="tag">Observer</span>
+            </div>
+          </div>
+
+          <div class="mc l2">
+            <div class="mc-name">Misc (3)</div>
+            <div class="mc-tags">
+              <span class="tag">VideoPlayer</span>
+              <span class="tag">PlannerDaily</span>
+              <span class="tag">PaymentsDocuments</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L3: Services & Composables -->
+    <div class="layer-row">
+      <div class="layer-num l3">L 3</div>
+      <div class="layer-body l3">
+        <div class="layer-title">Services, Composables &amp; Helpers</div>
+        <div class="modules-row">
+
+          <div class="mc l3">
+            <div class="mc-name">Services (16)</div>
+            <div class="mc-tags">
+              <span class="tag">useGradebook</span>
+              <span class="tag">useClass</span>
+              <span class="tag">useSubject</span>
+              <span class="tag">useUnit</span>
+              <span class="tag">useCollabSpace</span>
+              <span class="tag">useNetworkChat</span>
+              <span class="tag">useNotificationFeed</span>
+              <span class="tag">useTaskPlanner</span>
+              <span class="tag">useVideoPlayer</span>
+              <span class="tag">useSyllabus</span>
+              <span class="tag">+6 más</span>
+            </div>
+          </div>
+
+          <div class="mc l3">
+            <div class="mc-name">Composables (14)</div>
+            <div class="mc-tags">
+              <span class="tag">useLearningLab</span>
+              <span class="tag">useLibraryObject</span>
+              <span class="tag">useCreateLibraryObject</span>
+              <span class="tag">useMaterialElements</span>
+              <span class="tag">useToast</span>
+              <span class="tag">useSidebar</span>
+              <span class="tag">useUserForm</span>
+              <span class="tag">useOutsideClick</span>
+              <span class="tag">+6 más</span>
+            </div>
+          </div>
+
+          <div class="mc l3">
+            <div class="mc-name">Helpers (6)</div>
+            <div class="mc-tags">
+              <span class="tag">date.js</span>
+              <span class="tag">string.js</span>
+              <span class="tag">fileToBase64</span>
+              <span class="tag">urlToFile</span>
+              <span class="tag">stringToColor</span>
+              <span class="tag">errorHandling</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L4: Component Library -->
+    <div class="layer-row">
+      <div class="layer-num l4">L 4</div>
+      <div class="layer-body l4">
+        <div class="layer-title">Biblioteca de Componentes — 94 componentes</div>
+        <div class="modules-row">
+
+          <div class="mc l4">
+            <div class="mc-name">Gradebook (30)</div>
+            <div class="mc-tags">
+              <span class="tag">ManageGrades</span>
+              <span class="tag">ManageAttendance</span>
+              <span class="tag">GradingSystemCard</span>
+              <span class="tag">ContentDescriptors</span>
+              <span class="tag">CategorySelector</span>
+              <span class="tag">AddItemToGradebook</span>
+              <span class="tag">Reports · Observer</span>
+              <span class="tag">+23 más</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">UI Primitives (10)</div>
+            <div class="mc-tags">
+              <span class="tag">Button</span>
+              <span class="tag">Card</span>
+              <span class="tag">Icon</span>
+              <span class="tag">Toggle</span>
+              <span class="tag">Tabs</span>
+              <span class="tag">Menu</span>
+              <span class="tag">Loader</span>
+              <span class="tag">Tree</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">Media &amp; Files (8)</div>
+            <div class="mc-tags">
+              <span class="tag">DragDropFile</span>
+              <span class="tag">Dropzone</span>
+              <span class="tag">PickerImage</span>
+              <span class="tag">pdfReader</span>
+              <span class="tag">pdfEdit</span>
+              <span class="tag">Attachments</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">Network &amp; Chat (6)</div>
+            <div class="mc-tags">
+              <span class="tag">NetworkSocialMessage</span>
+              <span class="tag">NetworkSocialUserCard</span>
+              <span class="tag">ChatSettings</span>
+              <span class="tag">SidebarNetworkChat</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">Layout (10)</div>
+            <div class="mc-tags">
+              <span class="tag">Sidebar</span>
+              <span class="tag">Dialog</span>
+              <span class="tag">Post</span>
+              <span class="tag">PostThread</span>
+              <span class="tag">Announcement</span>
+              <span class="tag">Cover</span>
+              <span class="tag">Toast</span>
+              <span class="tag">EmptyState</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /hierarchy -->
+
+  <!-- CROSS-CUTTING CONCERNS -->
+  <div class="cross-section">
+
+    <div class="cc-card state">
+      <div class="cc-title">State · Vuex 4</div>
+      <div class="cc-pills">
+        <span class="cp">auth</span>
+        <span class="cp">socket (IO)</span>
+        <span class="cp">academicAlerts</span>
+        <span class="cp">collabspaceMembers</span>
+        <span class="cp">logoCollabSpace</span>
+        <span class="cp">Module: Chat</span>
+      </div>
+    </div>
+
+    <div class="cc-card api">
+      <div class="cc-title">API Layer · 13 módulos Axios</div>
+      <div class="cc-pills">
+        <span class="cp">ApiAuth</span>
+        <span class="cp">ApiCollabspace</span>
+        <span class="cp">ApiClass</span>
+        <span class="cp">ApiSubject</span>
+        <span class="cp">ApiLab</span>
+        <span class="cp">ApiNotification</span>
+        <span class="cp">ApiObserver</span>
+        <span class="cp">+6 más</span>
+      </div>
+    </div>
+
+    <div class="cc-card rt">
+      <div class="cc-title">Real-time · Socket.IO</div>
+      <div class="cc-pills">
+        <span class="cp">vue-3-socket.io</span>
+        <span class="cp">socket_ actions</span>
+        <span class="cp">SOCKET_ mutations</span>
+        <span class="cp">Chat module</span>
+        <span class="cp">reconnect ×5</span>
+      </div>
+    </div>
+
+    <div class="cc-card libs">
+      <div class="cc-title">Librerías especializadas</div>
+      <div class="cc-pills">
+        <span class="cp">Chart.js 4</span>
+        <span class="cp">jsPDF · html2canvas</span>
+        <span class="cp">Quill (rich text)</span>
+        <span class="cp">vee-validate · yup</span>
+        <span class="cp">vuedraggable</span>
+        <span class="cp">vue-datepicker</span>
+        <span class="cp">emoji-picker</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INFRASTRUCTURE / TOOLING -->
+  <div class="infra-section">
+    <span class="infra-label">Tooling</span>
+    <span class="it v">Vue.js 3.2</span>
+    <span class="it vt">Vite 5</span>
+    <span class="it vr">Vue Router 4 · hash mode</span>
+    <span class="it ax">Axios 1.1</span>
+    <span class="it pm">PrimeVue 4 · Aura theme</span>
+    <span class="it sk">Socket.IO Client 4.5</span>
+    <span class="it v">ESLint · Prettier · SASS</span>
+  </div>
+
+  <!-- Diagram footer -->
+  <div class="diag-footer">
+    <div class="stack-pills">
+      <span class="sp">Vue 3 · Composition API</span>
+      <span class="sp">Vuex 4 · Vue Router 4</span>
+      <span class="sp">PrimeVue 4</span>
+      <span class="sp">Socket.IO 4</span>
+      <span class="sp">i18n · EN / ES</span>
+      <span class="sp">Vite 5</span>
+    </div>
+    <div class="diag-author">jrueda.dev</div>
+  </div>
+
+</div><!-- /diagram-card -->
+
+<!-- SERIES NAV -->
+<nav class="series-nav">
+  <div class="series-item">
+    <div class="series-item-num">1</div>
+    <h4>Backend · alms-core</h4>
+    <p>Módulos Laravel 8, jerarquía de dominio, infraestructura y autenticación.</p>
+  </div>
+  <div class="series-item active">
+    <div class="series-item-num">2</div>
+    <h4>Frontend · alms-web</h4>
+    <p>Vue.js 3, estructura de vistas, estado global y comunicación con la API.</p>
+  </div>
+  <div class="series-item">
+    <div class="series-item-num">3</div>
+    <h4>Tiempo real · alms-socket</h4>
+    <p>Socket.IO server, canales, eventos y listeners en tiempo real.</p>
+  </div>
+  <div class="series-item">
+    <div class="series-item-num">4</div>
+    <h4>IA · N8N + Gemini</h4>
+    <p>Flujo de análisis inteligente de estudiantes con LLM.</p>
+  </div>
+</nav>
+
+</body>
+</html>

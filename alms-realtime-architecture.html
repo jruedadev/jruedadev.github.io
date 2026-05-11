@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alumnus LMS — Real-time Architecture · Johan Rueda</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:      #00d4e8;
+    --cyan-dim:  rgba(0,212,232,0.07);
+    --cyan-bd:   rgba(0,212,232,0.22);
+    --text-muted:#475569;
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #000;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px 64px;
+  }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header { text-align: center; margin-bottom: 40px; max-width: 720px; }
+  .page-series {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--cyan-dim); border: 1px solid var(--cyan-bd);
+    border-radius: 20px; padding: 4px 14px;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--cyan); margin-bottom: 18px;
+  }
+  .page-series .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); opacity: 0.5; }
+  .page-title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 10px; }
+  .page-title em { color: var(--cyan); font-style: normal; }
+  .page-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; }
+
+  /* ─── DIAGRAM CARD ─── */
+  .diagram-card {
+    width: 100%; max-width: 1080px;
+    background: linear-gradient(160deg, #000000 0%, #030f18 50%, #001010 100%);
+    border: 1px solid rgba(0,212,232,0.14);
+    border-radius: 20px; padding: 36px 40px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .diagram-card::before {
+    content: ''; position: absolute; top: -120px; right: -120px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,232,0.055) 0%, transparent 65%); pointer-events: none;
+  }
+  .diagram-card::after {
+    content: ''; position: absolute; bottom: -140px; left: -60px;
+    width: 460px; height: 460px;
+    background: radial-gradient(circle, rgba(124,58,237,0.04) 0%, transparent 65%); pointer-events: none;
+  }
+
+  /* ─── HEADER ─── */
+  .diag-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 26px; position: relative; z-index: 1; }
+  .diag-title { font-size: 1.15rem; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
+  .diag-title .accent { color: var(--cyan); }
+  .diag-meta { font-size: 0.6rem; color: rgba(255,255,255,0.18); font-family: 'Cascadia Code','Fira Code',monospace; margin-top: 4px; }
+  .diag-badge { flex-shrink: 0; background: var(--cyan-dim); border: 1px solid var(--cyan-bd); border-radius: 20px; padding: 5px 14px; font-size: 0.6rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--cyan); white-space: nowrap; }
+
+  /* ─── TECH BAND ─── */
+  .tech-band {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    background: rgba(0,212,232,0.04); border: 1px solid rgba(0,212,232,0.18);
+    border-radius: 10px; padding: 9px 14px; margin-bottom: 16px;
+    position: relative; z-index: 1;
+  }
+  .tb-label { font-size: 0.56rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(0,212,232,0.45); margin-right: 6px; white-space: nowrap; flex-shrink: 0; }
+  .tb-sep { width: 1px; height: 18px; background: rgba(0,212,232,0.15); margin: 0 4px; }
+  .tp { border-radius: 5px; padding: 3px 9px; font-size: 0.62rem; font-weight: 600; white-space: nowrap; }
+  .tp.core  { background: rgba(0,212,232,0.08);  border: 1px solid rgba(0,212,232,0.25);  color: #00d4e8; }
+  .tp.infra { background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.22); color: #6ee7b7; }
+  .tp.sec   { background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.25); color: #c4b5fd; }
+
+  /* ─── TWO-SERVER LAYOUT ─── */
+  .servers-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0;
+    align-items: start;
+    margin-bottom: 16px;
+    position: relative; z-index: 1;
+  }
+
+  .server-card { border-radius: 12px; padding: 18px 20px; border: 1px solid; }
+  .server-card.main { background: rgba(0,212,232,0.04); border-color: rgba(0,212,232,0.28); }
+  .server-card.feed { background: rgba(124,58,237,0.04); border-color: rgba(124,58,237,0.22); }
+
+  .server-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .server-name { font-size: 0.78rem; font-weight: 800; }
+  .server-card.main .server-name { color: #00d4e8; }
+  .server-card.feed .server-name { color: #c4b5fd; }
+  .server-port {
+    font-size: 0.58rem; font-weight: 700; font-family: monospace;
+    border-radius: 4px; padding: 2px 8px;
+  }
+  .server-card.main .server-port { background: rgba(0,212,232,0.1); border: 1px solid rgba(0,212,232,0.3); color: #00d4e8; }
+  .server-card.feed .server-port { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
+
+  /* Sections inside server card */
+  .server-section { margin-bottom: 12px; }
+  .server-section:last-child { margin-bottom: 0; }
+  .ss-title { font-size: 0.55rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 7px; }
+  .server-card.main .ss-title { color: rgba(0,212,232,0.5); }
+  .server-card.feed .ss-title { color: rgba(167,139,250,0.5); }
+  .ss-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 10px 0; }
+
+  /* Evento tags */
+  .events-grid { display: flex; flex-direction: column; gap: 4px; }
+  .event-row { display: flex; align-items: flex-start; gap: 6px; }
+  .ev-direction {
+    flex-shrink: 0; font-size: 0.52rem; font-weight: 800; letter-spacing: 0.5px;
+    text-transform: uppercase; padding: 2px 6px; border-radius: 3px; margin-top: 1px;
+    white-space: nowrap;
+  }
+  .ev-direction.in  { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: #6ee7b7; }
+  .ev-direction.out { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); color: #fcd34d; }
+  .ev-direction.sys { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); }
+  .ev-content { flex: 1; }
+  .ev-name { font-size: 0.67rem; font-weight: 700; font-family: monospace; }
+  .server-card.main .ev-name { color: rgba(0,212,232,0.8); }
+  .server-card.feed .ev-name { color: rgba(167,139,250,0.8); }
+  .ev-desc { font-size: 0.57rem; color: rgba(255,255,255,0.28); margin-top: 1px; line-height: 1.4; }
+
+  /* Connection management tags */
+  .conn-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cpill { border-radius: 4px; padding: 3px 8px; font-size: 0.6rem; font-weight: 600; }
+  .server-card.main .cpill { background: rgba(0,212,232,0.07); border: 1px solid rgba(0,212,232,0.22); color: rgba(0,212,232,0.7); }
+  .server-card.feed .cpill { background: rgba(124,58,237,0.07); border: 1px solid rgba(124,58,237,0.22); color: rgba(167,139,250,0.7); }
+
+  /* Divider between servers */
+  .servers-divider {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; padding: 0 16px; padding-top: 50px;
+  }
+  .div-line { width: 1px; height: 40px; background: rgba(255,255,255,0.06); }
+  .div-badge {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px; padding: 4px 8px; font-size: 0.55rem; color: rgba(255,255,255,0.25);
+    text-align: center; white-space: nowrap;
+  }
+
+  /* ─── CROSS-CUTTING ─── */
+  .cross-section {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    margin-top: 0; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1;
+  }
+  .cc-card { border-radius: 9px; padding: 10px 12px; border: 1px solid; }
+  .cc-title { font-size: 0.56rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; }
+  .cc-pills { display: flex; flex-wrap: wrap; gap: 3px; }
+  .cp { border-radius: 3px; padding: 2px 6px; font-size: 0.56rem; font-weight: 600; }
+
+  .cc-card.cors   { background: rgba(56,189,248,0.04);  border-color: rgba(56,189,248,0.17); }
+  .cc-card.cors   .cc-title { color: rgba(56,189,248,0.55); }
+  .cc-card.cors   .cp { background: rgba(56,189,248,0.07); color: rgba(125,211,252,0.65); }
+
+  .cc-card.bcast  { background: rgba(251,191,36,0.04);  border-color: rgba(251,191,36,0.16); }
+  .cc-card.bcast  .cc-title { color: rgba(251,191,36,0.55); }
+  .cc-card.bcast  .cp { background: rgba(251,191,36,0.06); color: rgba(252,211,77,0.65); }
+
+  .cc-card.docker { background: rgba(52,211,153,0.04);  border-color: rgba(52,211,153,0.17); }
+  .cc-card.docker .cc-title { color: rgba(52,211,153,0.55); }
+  .cc-card.docker .cp { background: rgba(52,211,153,0.07); color: rgba(110,231,183,0.65); }
+
+  /* ─── INFRA ─── */
+  .infra-section {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1;
+  }
+  .infra-label { font-size: 0.54rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.15); margin-right: 6px; flex-shrink: 0; }
+  .it { padding: 3px 9px; border-radius: 4px; font-size: 0.61rem; font-weight: 700; white-space: nowrap; }
+  .it.nd { background: rgba(52,211,153,0.07);  border: 1px solid rgba(52,211,153,0.22);  color: #6ee7b7; }
+  .it.sk { background: rgba(0,212,232,0.07);   border: 1px solid rgba(0,212,232,0.22);   color: #00d4e8; }
+  .it.ex { background: rgba(251,191,36,0.07);  border: 1px solid rgba(251,191,36,0.22);  color: #fcd34d; }
+  .it.dk { background: rgba(56,189,248,0.07);  border: 1px solid rgba(56,189,248,0.22);  color: #7dd3fc; }
+  .it.co { background: rgba(124,58,237,0.07);  border: 1px solid rgba(124,58,237,0.22);  color: #c4b5fd; }
+
+  /* ─── DIAGRAM FOOTER ─── */
+  .diag-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    margin-top: 18px; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1; flex-wrap: wrap;
+  }
+  .stack-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .sp { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 2px 9px; font-size: 0.56rem; color: rgba(255,255,255,0.27); }
+  .diag-author { font-size: 0.62rem; color: rgba(0,212,232,0.30); font-weight: 800; letter-spacing: 0.5px; white-space: nowrap; }
+
+  /* ─── SERIES NAV ─── */
+  .series-nav { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; justify-content: center; max-width: 1080px; width: 100%; }
+  .series-item { flex: 1; min-width: 160px; max-width: 240px; border-radius: 10px; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.02); }
+  .series-item.active { border-color: rgba(0,212,232,0.30); background: rgba(0,212,232,0.04); }
+  .series-item-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 0.6rem; font-weight: 800; margin-bottom: 6px; }
+  .series-item.active .series-item-num { background: rgba(0,212,232,0.12); color: #00d4e8; border: 1px solid rgba(0,212,232,0.30); }
+  .series-item .series-item-num { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.30); border: 1px solid rgba(255,255,255,0.10); }
+  .series-item h4 { font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.35); margin-bottom: 3px; }
+  .series-item.active h4 { color: #00d4e8; }
+  .series-item p { font-size: 0.62rem; color: var(--text-muted); line-height: 1.5; }
+</style>
+<style>
+  [data-theme="light"] {
+    --bg:        #f8fafc;
+    --surface:   #ffffff;
+    --text:      #0f172a;
+    --text-muted:#64748b;
+    --slate-dim: rgba(0,0,0,0.03);
+    --slate-bd:  rgba(0,0,0,0.09);
+    --cyan-dim:  rgba(0,180,200,0.08);
+    --cyan-bd:   rgba(0,180,200,0.30);
+    --purple-dim:rgba(124,58,237,0.07);
+    --purple-bd: rgba(124,58,237,0.25);
+    --sky-dim:   rgba(14,165,233,0.07);
+    --sky-bd:    rgba(14,165,233,0.25);
+  }
+</style>
+<script>
+  window.addEventListener("message", function(e) {
+    if (e.data && (e.data.theme === "light" || e.data.theme === "dark")) {
+      document.documentElement.setAttribute("data-theme", e.data.theme);
+    }
+  });
+</script>
+</head>
+<body>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="page-series">
+    <div class="dot"></div>
+    Alumnus LMS · Arquitectura del Sistema · 3 de 4
+    <div class="dot"></div>
+  </div>
+  <h1 class="page-title"><em>Real-time</em> Architecture<br>alms-socket</h1>
+  <p class="page-desc">
+    Servidor de eventos en tiempo real construido con Node.js y Socket.IO 4. Dos instancias independientes
+    corriendo en paralelo vía Docker — mensajería directa, broadcast de actividad y feed de notificaciones.
+  </p>
+</header>
+
+<!-- DIAGRAM -->
+<div class="diagram-card">
+
+  <!-- Header -->
+  <div class="diag-header">
+    <div>
+      <div class="diag-title">
+        <span class="accent">{</span> Alumnus LMS <span class="accent">}</span> — Real-time Architecture
+      </div>
+      <div class="diag-meta">alms-socket · Node.js · Socket.IO 4.5 · Express 4 · Docker · 2 servidores independientes</div>
+    </div>
+    <div class="diag-badge">3 / 4 · Real-time</div>
+  </div>
+
+  <!-- TECH BAND -->
+  <div class="tech-band">
+    <span class="tb-label">Core Stack</span>
+    <span class="tp core">Socket.IO 4.5</span>
+    <span class="tp core">Node.js</span>
+    <span class="tp core">Express 4</span>
+    <div class="tb-sep"></div>
+    <span class="tp infra">Docker · Alpine</span>
+    <span class="tp infra">docker-compose</span>
+    <span class="tp infra">concurrently</span>
+    <div class="tb-sep"></div>
+    <span class="tp sec">CORS · 4 orígenes</span>
+    <span class="tp sec">userId · query auth</span>
+  </div>
+
+  <!-- TWO SERVERS -->
+  <div class="servers-row">
+
+    <!-- Main server -->
+    <div class="server-card main">
+      <div class="server-header">
+        <div class="server-name">index.js — Servidor Principal</div>
+        <div class="server-port">:8081</div>
+      </div>
+
+      <!-- Connection management -->
+      <div class="server-section">
+        <div class="ss-title">Gestión de Conexiones</div>
+        <div class="conn-pills">
+          <span class="cpill">connectedUsers[ ] in-memory</span>
+          <span class="cpill">userId · query string</span>
+          <span class="cpill">room1 · todos los usuarios</span>
+          <span class="cpill">reconexión · reemplaza socket</span>
+          <span class="cpill">ping 25s · timeout 60s</span>
+          <span class="cpill">maxBuffer 5 MB</span>
+        </div>
+      </div>
+
+      <div class="ss-divider"></div>
+
+      <!-- Events in -->
+      <div class="server-section">
+        <div class="ss-title">Eventos entrantes (escucha)</div>
+        <div class="events-grid">
+          <div class="event-row">
+            <span class="ev-direction in">IN</span>
+            <div class="ev-content">
+              <div class="ev-name">newMessage</div>
+              <div class="ev-desc">recipients[], message, postid, chatype, messageType</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction in">IN</span>
+            <div class="ev-content">
+              <div class="ev-name">setThread</div>
+              <div class="ev-desc">thread, group → broadcast updateThread</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction in">IN</span>
+            <div class="ev-content">
+              <div class="ev-name">onPushNotification</div>
+              <div class="ev-desc">data, audience[] → listenNotifications:{userId}</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction in">IN</span>
+            <div class="ev-content">
+              <div class="ev-name">removeUserPost · removeThread</div>
+              <div class="ev-desc">body → broadcast global</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction in">IN</span>
+            <div class="ev-content">
+              <div class="ev-name">fileUploaded · exposeNotifications</div>
+              <div class="ev-desc">body / data → broadcast global</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction sys">SYS</span>
+            <div class="ev-content">
+              <div class="ev-name">disconnecting · disconnect</div>
+              <div class="ev-desc">elimina usuario de connectedUsers[]</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ss-divider"></div>
+
+      <!-- Events out -->
+      <div class="server-section">
+        <div class="ss-title">Eventos emitidos</div>
+        <div class="events-grid">
+          <div class="event-row">
+            <span class="ev-direction out">OUT</span>
+            <div class="ev-content">
+              <div class="ev-name">NEW_MESSAGE</div>
+              <div class="ev-desc">directo al recipient · {contact, mess, emisor}</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction out">OUT</span>
+            <div class="ev-content">
+              <div class="ev-name">updateThread · broadcast</div>
+              <div class="ev-desc">io.sockets.emit → todos los clientes</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction out">OUT</span>
+            <div class="ev-content">
+              <div class="ev-name">listenNotifications:{userId}</div>
+              <div class="ev-desc">broadcast global · cliente filtra por userId</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction out">OUT</span>
+            <div class="ev-content">
+              <div class="ev-name">ai_insight_ready</div>
+              <div class="ev-desc">emitido por alms-core (SocketIOClient) al completar análisis AI</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="servers-divider">
+      <div class="div-line"></div>
+      <div class="div-badge">concurrently<br>paralelo</div>
+      <div class="div-line"></div>
+    </div>
+
+    <!-- Feed server -->
+    <div class="server-card feed">
+      <div class="server-header">
+        <div class="server-name">channel-feed.js — Feed Server</div>
+        <div class="server-port">:8090</div>
+      </div>
+
+      <div class="server-section">
+        <div class="ss-title">Propósito</div>
+        <div class="conn-pills">
+          <span class="cpill">Broadcast de actividad del feed</span>
+          <span class="cpill">Servidor independiente</span>
+          <span class="cpill">Sin autenticación</span>
+        </div>
+      </div>
+
+      <div class="ss-divider"></div>
+
+      <div class="server-section">
+        <div class="ss-title">Eventos</div>
+        <div class="events-grid">
+          <div class="event-row">
+            <span class="ev-direction in">IN</span>
+            <div class="ev-content">
+              <div class="ev-name">exposeNotifications</div>
+              <div class="ev-desc">recibe evento de actividad del feed</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction out">OUT</span>
+            <div class="ev-content">
+              <div class="ev-name">exposeNotifications</div>
+              <div class="ev-desc">broadcast global → io.sockets.emit</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <span class="ev-direction sys">SYS</span>
+            <div class="ev-content">
+              <div class="ev-name">connect · disconnect</div>
+              <div class="ev-desc">registro en consola</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ss-divider"></div>
+
+      <div class="server-section">
+        <div class="ss-title">Docker</div>
+        <div class="conn-pills">
+          <span class="cpill">node:alpine</span>
+          <span class="cpill">8080:8080</span>
+          <span class="cpill">8090:8090</span>
+          <span class="cpill">red: alumnuslms</span>
+          <span class="cpill">red: laravel-app</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CROSS-CUTTING -->
+  <div class="cross-section">
+
+    <div class="cc-card cors">
+      <div class="cc-title">CORS · Orígenes permitidos</div>
+      <div class="cc-pills">
+        <span class="cp">localhost:8081</span>
+        <span class="cp">alms-sprint.vercel.app</span>
+        <span class="cp">web-dev.alumnuslms.com</span>
+        <span class="cp">web.alumnuslms.com</span>
+        <span class="cp">GET · POST</span>
+      </div>
+    </div>
+
+    <div class="cc-card bcast">
+      <div class="cc-title">Patrones de Broadcasting</div>
+      <div class="cc-pills">
+        <span class="cp">Directo · socket.to(socketId)</span>
+        <span class="cp">Global · io.sockets.emit</span>
+        <span class="cp">Dirigido · evento:{userId}</span>
+        <span class="cp">Room · room1 (todos)</span>
+      </div>
+    </div>
+
+    <div class="cc-card docker">
+      <div class="cc-title">Deploy · Docker</div>
+      <div class="cc-pills">
+        <span class="cp">Dockerfile Alpine</span>
+        <span class="cp">docker-compose</span>
+        <span class="cp">concurrently</span>
+        <span class="cp">2 servidores · 2 puertos</span>
+        <span class="cp">Red externa alumnuslms</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INFRA -->
+  <div class="infra-section">
+    <span class="infra-label">Stack</span>
+    <span class="it nd">Node.js · Current</span>
+    <span class="it sk">Socket.IO 4.5</span>
+    <span class="it ex">Express 4.18</span>
+    <span class="it dk">Docker · Alpine 3.17</span>
+    <span class="it co">CORS 2.8</span>
+    <span class="it nd">dotenv 16</span>
+    <span class="it co">nodemon (dev)</span>
+  </div>
+
+  <!-- Footer -->
+  <div class="diag-footer">
+    <div class="stack-pills">
+      <span class="sp">Node.js · Socket.IO 4</span>
+      <span class="sp">Express 4</span>
+      <span class="sp">Docker · Alpine</span>
+      <span class="sp">2 servidores independientes</span>
+      <span class="sp">Mensajería directa y broadcast</span>
+    </div>
+    <div class="diag-author">jrueda.dev</div>
+  </div>
+
+</div><!-- /diagram-card -->
+
+<!-- SERIES NAV -->
+<nav class="series-nav">
+  <div class="series-item">
+    <div class="series-item-num">1</div>
+    <h4>Backend · alms-core</h4>
+    <p>Módulos Laravel 8, jerarquía de dominio, infraestructura y autenticación.</p>
+  </div>
+  <div class="series-item">
+    <div class="series-item-num">2</div>
+    <h4>Frontend · alms-web</h4>
+    <p>Vue.js 3, estructura de vistas, estado global y comunicación con la API.</p>
+  </div>
+  <div class="series-item active">
+    <div class="series-item-num">3</div>
+    <h4>Tiempo real · alms-socket</h4>
+    <p>Socket.IO server, canales, eventos y listeners en tiempo real.</p>
+  </div>
+  <div class="series-item">
+    <div class="series-item-num">4</div>
+    <h4>IA · N8N + Gemini</h4>
+    <p>Flujo de análisis inteligente de estudiantes con LLM.</p>
+  </div>
+</nav>
+
+</body>
+</html>
