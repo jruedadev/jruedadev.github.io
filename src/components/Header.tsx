@@ -11,20 +11,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Logo } from '@/components/Logo';
 import { useNavigateToSection } from '@/hooks/useNavigateToSection';
+import { useTheme } from '@/context/ThemeContext';
 
 export const Header = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const goToSection = useNavigateToSection();
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    document.documentElement.classList.toggle('light');
-  };
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);

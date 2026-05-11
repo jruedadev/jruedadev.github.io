@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alumnus LMS — AI Architecture · Johan Rueda</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:      #00d4e8;
+    --cyan-dim:  rgba(0,212,232,0.07);
+    --cyan-bd:   rgba(0,212,232,0.22);
+    --green:     #6ee7b7;
+    --purple:    #c4b5fd;
+    --text-muted:#475569;
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #000;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px 64px;
+  }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header { text-align: center; margin-bottom: 40px; max-width: 720px; }
+  .page-series {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--cyan-dim); border: 1px solid var(--cyan-bd);
+    border-radius: 20px; padding: 4px 14px;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--cyan); margin-bottom: 18px;
+  }
+  .page-series .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); opacity: 0.5; }
+  .page-title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 10px; }
+  .page-title em { color: var(--cyan); font-style: normal; }
+  .page-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; }
+
+  /* ─── DIAGRAM CARD ─── */
+  .diagram-card {
+    width: 100%; max-width: 1080px;
+    background: linear-gradient(160deg, #000000 0%, #030f18 50%, #001010 100%);
+    border: 1px solid rgba(0,212,232,0.14);
+    border-radius: 20px; padding: 36px 40px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .diagram-card::before {
+    content: ''; position: absolute; top: -120px; right: -120px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,232,0.055) 0%, transparent 65%); pointer-events: none;
+  }
+  .diagram-card::after {
+    content: ''; position: absolute; bottom: -140px; left: -60px;
+    width: 460px; height: 460px;
+    background: radial-gradient(circle, rgba(52,211,153,0.04) 0%, transparent 65%); pointer-events: none;
+  }
+
+  /* ─── HEADER ─── */
+  .diag-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 26px; position: relative; z-index: 1; }
+  .diag-title { font-size: 1.15rem; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
+  .diag-title .accent { color: var(--cyan); }
+  .diag-meta { font-size: 0.6rem; color: rgba(255,255,255,0.18); font-family: 'Cascadia Code','Fira Code',monospace; margin-top: 4px; }
+  .diag-badge { flex-shrink: 0; background: var(--cyan-dim); border: 1px solid var(--cyan-bd); border-radius: 20px; padding: 5px 14px; font-size: 0.6rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--cyan); white-space: nowrap; }
+
+  /* ─── TECH BAND ─── */
+  .tech-band {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    background: rgba(0,212,232,0.04); border: 1px solid rgba(0,212,232,0.18);
+    border-radius: 10px; padding: 9px 14px; margin-bottom: 22px;
+    position: relative; z-index: 1;
+  }
+  .tb-label { font-size: 0.56rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(0,212,232,0.45); margin-right: 6px; white-space: nowrap; flex-shrink: 0; }
+  .tb-sep { width: 1px; height: 18px; background: rgba(0,212,232,0.15); margin: 0 4px; }
+  .tp { border-radius: 5px; padding: 3px 9px; font-size: 0.62rem; font-weight: 600; white-space: nowrap; }
+  .tp.c  { background: rgba(0,212,232,0.08);  border: 1px solid rgba(0,212,232,0.25);  color: #00d4e8; }
+  .tp.g  { background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.22); color: #6ee7b7; }
+  .tp.p  { background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.25); color: #c4b5fd; }
+
+  /* ─── MAIN FLOW ─── */
+  .flow-section { position: relative; z-index: 1; }
+
+  /* Row of actors */
+  .actors-row {
+    display: grid;
+    grid-template-columns: 1fr 24px 1.8fr 24px 1.4fr;
+    gap: 0;
+    align-items: start;
+    margin-bottom: 16px;
+  }
+
+  /* Actor card */
+  .actor { border-radius: 11px; padding: 14px 16px; border: 1px solid; }
+  .actor.frontend { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.09); }
+  .actor.backend  { background: rgba(124,58,237,0.05); border-color: rgba(124,58,237,0.22); }
+  .actor.n8n      { background: rgba(0,212,232,0.04);  border-color: rgba(0,212,232,0.25); }
+  .actor.gemini   { background: rgba(52,211,153,0.04); border-color: rgba(52,211,153,0.22); }
+
+  .actor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .actor-name { font-size: 0.75rem; font-weight: 800; }
+  .actor.frontend .actor-name { color: rgba(255,255,255,0.6); }
+  .actor.backend  .actor-name { color: #c4b5fd; }
+  .actor.n8n      .actor-name { color: #00d4e8; }
+  .actor.gemini   .actor-name { color: #6ee7b7; }
+  .actor-tag { font-size: 0.55rem; font-weight: 700; border-radius: 4px; padding: 2px 7px; white-space: nowrap; }
+  .actor.frontend .actor-tag { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); }
+  .actor.backend  .actor-tag { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
+  .actor.n8n      .actor-tag { background: rgba(0,212,232,0.08); border: 1px solid rgba(0,212,232,0.3); color: #00d4e8; }
+  .actor.gemini   .actor-tag { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.3); color: #6ee7b7; }
+
+  /* Items inside actor */
+  .actor-items { display: flex; flex-direction: column; gap: 4px; }
+  .ai { display: flex; align-items: flex-start; gap: 6px; }
+  .ai-dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .actor.frontend .ai-dot { background: rgba(255,255,255,0.2); }
+  .actor.backend  .ai-dot { background: rgba(196,181,253,0.4); }
+  .actor.n8n      .ai-dot { background: rgba(0,212,232,0.5); }
+  .actor.gemini   .ai-dot { background: rgba(110,231,183,0.5); }
+  .ai-text { font-size: 0.63rem; color: rgba(255,255,255,0.55); line-height: 1.4; }
+  .ai-text strong { font-weight: 700; }
+  .actor.frontend .ai-text strong { color: rgba(255,255,255,0.7); }
+  .actor.backend  .ai-text strong { color: #c4b5fd; }
+  .actor.n8n      .ai-text strong { color: #00d4e8; }
+  .actor.gemini   .ai-text strong { color: #6ee7b7; }
+
+  /* Arrow between actors */
+  .flow-arr {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding-top: 42px; gap: 3px;
+  }
+  .arr-line { width: 1px; height: 28px; }
+  .arr-label { font-size: 0.52rem; color: rgba(0,212,232,0.3); white-space: nowrap; text-align: center; letter-spacing: 0.3px; }
+  .arr-tip { font-size: 10px; color: rgba(0,212,232,0.3); }
+
+  /* ─── N8N WORKFLOW DETAIL ─── */
+  .n8n-detail {
+    border: 1px solid rgba(0,212,232,0.22);
+    border-radius: 12px;
+    padding: 16px 20px;
+    background: rgba(0,212,232,0.03);
+    margin-bottom: 16px;
+    position: relative; z-index: 1;
+  }
+  .n8n-detail-title { font-size: 0.57rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(0,212,232,0.55); margin-bottom: 14px; }
+
+  /* Workflow nodes row */
+  .wf-row { display: flex; align-items: center; gap: 0; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+
+  .wf-node {
+    border-radius: 8px; padding: 9px 12px; border: 1px solid;
+    text-align: center; flex-shrink: 0; min-width: 90px;
+  }
+  .wf-node-name { font-size: 0.66rem; font-weight: 700; white-space: nowrap; margin-bottom: 3px; }
+  .wf-node-type { font-size: 0.53rem; color: rgba(255,255,255,0.28); white-space: nowrap; }
+
+  .wf-node.webhook  { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.3); }
+  .wf-node.webhook  .wf-node-name { color: #c4b5fd; }
+  .wf-node.switch   { background: rgba(251,191,36,0.07); border-color: rgba(251,191,36,0.28); }
+  .wf-node.switch   .wf-node-name { color: #fcd34d; }
+  .wf-node.code     { background: rgba(56,189,248,0.07); border-color: rgba(56,189,248,0.25); }
+  .wf-node.code     .wf-node-name { color: #7dd3fc; }
+  .wf-node.llm      { background: rgba(0,212,232,0.07); border-color: rgba(0,212,232,0.28); }
+  .wf-node.llm      .wf-node-name { color: #00d4e8; }
+  .wf-node.gemini   { background: rgba(52,211,153,0.07); border-color: rgba(52,211,153,0.28); }
+  .wf-node.gemini   .wf-node-name { color: #6ee7b7; }
+  .wf-node.parse    { background: rgba(56,189,248,0.07); border-color: rgba(56,189,248,0.25); }
+  .wf-node.parse    .wf-node-name { color: #7dd3fc; }
+  .wf-node.callback { background: rgba(239,68,68,0.07); border-color: rgba(239,68,68,0.25); }
+  .wf-node.callback .wf-node-name { color: #fca5a5; }
+
+  /* Arrow between nodes */
+  .wf-arr { padding: 0 5px; color: rgba(0,212,232,0.25); font-size: 13px; flex-shrink: 0; }
+
+  /* Branch annotation */
+  .wf-branch-note {
+    display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap;
+  }
+  .wbn { border-radius: 4px; padding: 3px 8px; font-size: 0.57rem; font-weight: 700; }
+  .wbn.att  { background: rgba(56,189,248,0.07);  border: 1px solid rgba(56,189,248,0.22);  color: #7dd3fc; }
+  .wbn.grd  { background: rgba(0,212,232,0.07);   border: 1px solid rgba(0,212,232,0.22);   color: #00d4e8; }
+  .wbn.obs  { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); color: #c4b5fd; }
+  .wbn-label { font-size: 0.55rem; color: rgba(255,255,255,0.2); align-self: center; }
+
+  /* ─── RESULT SCHEMA ─── */
+  .schema-section {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 16px;
+    position: relative; z-index: 1;
+  }
+  .schema-card { border-radius: 10px; padding: 14px 16px; border: 1px solid; }
+  .schema-card.payload { background: rgba(124,58,237,0.04); border-color: rgba(124,58,237,0.2); }
+  .schema-card.result  { background: rgba(52,211,153,0.04);  border-color: rgba(52,211,153,0.2); }
+  .schema-title { font-size: 0.57rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px; }
+  .schema-card.payload .schema-title { color: rgba(167,139,250,0.6); }
+  .schema-card.result  .schema-title { color: rgba(110,231,183,0.6); }
+
+  .field-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .field-name { font-family: 'Cascadia Code','Fira Code',monospace; font-size: 0.65rem; font-weight: 700; min-width: 120px; flex-shrink: 0; }
+  .field-type { font-size: 0.58rem; border-radius: 3px; padding: 1px 6px; font-weight: 600; }
+  .field-desc { font-size: 0.57rem; color: rgba(255,255,255,0.28); }
+
+  .schema-card.payload .field-name { color: #c4b5fd; }
+  .schema-card.payload .field-type { background: rgba(124,58,237,0.1); color: rgba(167,139,250,0.7); }
+  .schema-card.result  .field-name { color: #6ee7b7; }
+  .schema-card.result  .field-type { background: rgba(52,211,153,0.08); color: rgba(110,231,183,0.7); }
+
+  .enum-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
+  .enum-val { font-size: 0.54rem; font-weight: 700; border-radius: 3px; padding: 2px 6px; }
+  .schema-card.result .enum-val.none     { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); color: #6ee7b7; }
+  .schema-card.result .enum-val.warning  { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); color: #fcd34d; }
+  .schema-card.result .enum-val.critical { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.2);  color: #fca5a5; }
+
+  /* ─── CROSS-CUTTING ─── */
+  .cross-section {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    margin-bottom: 16px; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1;
+  }
+  .cc-card { border-radius: 9px; padding: 10px 12px; border: 1px solid; }
+  .cc-title { font-size: 0.56rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; }
+  .cc-pills { display: flex; flex-wrap: wrap; gap: 3px; }
+  .cp { border-radius: 3px; padding: 2px 6px; font-size: 0.56rem; font-weight: 600; }
+
+  .cc-card.cache  { background: rgba(239,68,68,0.04);  border-color: rgba(239,68,68,0.17); }
+  .cc-card.cache  .cc-title { color: rgba(239,68,68,0.55); }
+  .cc-card.cache  .cp { background: rgba(239,68,68,0.07); color: rgba(252,165,165,0.65); }
+
+  .cc-card.sec    { background: rgba(251,191,36,0.04);  border-color: rgba(251,191,36,0.17); }
+  .cc-card.sec    .cc-title { color: rgba(251,191,36,0.55); }
+  .cc-card.sec    .cp { background: rgba(251,191,36,0.07); color: rgba(252,211,77,0.65); }
+
+  .cc-card.ws     { background: rgba(167,139,250,0.04); border-color: rgba(167,139,250,0.17); }
+  .cc-card.ws     .cc-title { color: rgba(167,139,250,0.55); }
+  .cc-card.ws     .cp { background: rgba(167,139,250,0.07); color: rgba(196,181,253,0.65); }
+
+  /* ─── INFRA ─── */
+  .infra-section {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    margin-top: 0; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1;
+  }
+  .infra-label { font-size: 0.54rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.15); margin-right: 6px; flex-shrink: 0; }
+  .it { padding: 3px 9px; border-radius: 4px; font-size: 0.61rem; font-weight: 700; white-space: nowrap; }
+  .it.n8 { background: rgba(0,212,232,0.07);   border: 1px solid rgba(0,212,232,0.22);   color: #00d4e8; }
+  .it.gm { background: rgba(52,211,153,0.07);  border: 1px solid rgba(52,211,153,0.22);  color: #6ee7b7; }
+  .it.lv { background: rgba(124,58,237,0.07);  border: 1px solid rgba(124,58,237,0.22);  color: #c4b5fd; }
+  .it.rd { background: rgba(239,68,68,0.07);   border: 1px solid rgba(239,68,68,0.22);   color: #fca5a5; }
+  .it.sk { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); color: #c4b5fd; }
+
+  /* ─── DIAGRAM FOOTER ─── */
+  .diag-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    margin-top: 18px; padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1; flex-wrap: wrap;
+  }
+  .stack-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .sp { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 2px 9px; font-size: 0.56rem; color: rgba(255,255,255,0.27); }
+  .diag-author { font-size: 0.62rem; color: rgba(0,212,232,0.30); font-weight: 800; letter-spacing: 0.5px; white-space: nowrap; }
+
+  /* ─── SERIES NAV ─── */
+  .series-nav { display: flex; gap: 8px; margin-top: 32px; flex-wrap: wrap; justify-content: center; max-width: 1080px; width: 100%; }
+  .series-item { flex: 1; min-width: 160px; max-width: 240px; border-radius: 10px; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.02); }
+  .series-item.active { border-color: rgba(0,212,232,0.30); background: rgba(0,212,232,0.04); }
+  .series-item-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 0.6rem; font-weight: 800; margin-bottom: 6px; }
+  .series-item.active .series-item-num { background: rgba(0,212,232,0.12); color: #00d4e8; border: 1px solid rgba(0,212,232,0.30); }
+  .series-item .series-item-num { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.30); border: 1px solid rgba(255,255,255,0.10); }
+  .series-item h4 { font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.35); margin-bottom: 3px; }
+  .series-item.active h4 { color: #00d4e8; }
+  .series-item p { font-size: 0.62rem; color: var(--text-muted); line-height: 1.5; }
+</style>
+<style>
+  [data-theme="light"] {
+    --bg:        #f8fafc;
+    --surface:   #ffffff;
+    --text:      #0f172a;
+    --text-muted:#64748b;
+    --slate-dim: rgba(0,0,0,0.03);
+    --slate-bd:  rgba(0,0,0,0.09);
+    --cyan-dim:  rgba(0,180,200,0.08);
+    --cyan-bd:   rgba(0,180,200,0.30);
+    --purple-dim:rgba(124,58,237,0.07);
+    --purple-bd: rgba(124,58,237,0.25);
+    --sky-dim:   rgba(14,165,233,0.07);
+    --sky-bd:    rgba(14,165,233,0.25);
+  }
+</style>
+<script>
+  window.addEventListener("message", function(e) {
+    if (e.data && (e.data.theme === "light" || e.data.theme === "dark")) {
+      document.documentElement.setAttribute("data-theme", e.data.theme);
+    }
+  });
+</script>
+</head>
+<body>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="page-series">
+    <div class="dot"></div>
+    Alumnus LMS · Arquitectura del Sistema · 4 de 4
+    <div class="dot"></div>
+  </div>
+  <h1 class="page-title"><em>AI Integration</em> Architecture<br>N8N + Google Gemini</h1>
+  <p class="page-desc">
+    Pipeline de análisis académico inteligente: Laravel despacha los datos del estudiante a N8N,
+    que construye un prompt contextual, consulta Gemini 2.0 Flash y devuelve el resultado
+    vía callback seguro con notificación en tiempo real al usuario.
+  </p>
+</header>
+
+<!-- DIAGRAM -->
+<div class="diagram-card">
+
+  <!-- Header -->
+  <div class="diag-header">
+    <div>
+      <div class="diag-title">
+        <span class="accent">{</span> Alumnus LMS <span class="accent">}</span> — AI Integration Architecture
+      </div>
+      <div class="diag-meta">StudentInsights AI · N8N Workflow Automation · Google Gemini 2.0 Flash · Laravel 8 · Redis Cache · Socket.IO</div>
+    </div>
+    <div class="diag-badge">4 / 4 · IA</div>
+  </div>
+
+  <!-- TECH BAND -->
+  <div class="tech-band">
+    <span class="tb-label">Stack IA</span>
+    <span class="tp g">N8N · Workflow Automation</span>
+    <span class="tp g">Google Gemini 2.0 Flash</span>
+    <span class="tp g">LangChain · LLM Chain</span>
+    <div class="tb-sep"></div>
+    <span class="tp c">Laravel 8 · alms-core</span>
+    <span class="tp c">Redis Cache · TTL 7 días</span>
+    <span class="tp c">Socket.IO · Real-time</span>
+    <div class="tb-sep"></div>
+    <span class="tp p">X-Callback-Token</span>
+    <span class="tp p">Middleware · ValidateAiCallbackToken</span>
+  </div>
+
+  <!-- FLOW SECTION -->
+  <div class="flow-section">
+
+    <!-- Actors row -->
+    <div class="actors-row">
+
+      <!-- Frontend -->
+      <div class="actor frontend">
+        <div class="actor-header">
+          <div class="actor-name">Frontend</div>
+          <div class="actor-tag">alms-web · Vue 3</div>
+        </div>
+        <div class="actor-items">
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text"><strong>POST</strong> /api/reports/student-insights/ai-analysis</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text">{ user_id, gradebook_id, <strong>section</strong> }</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text">Escucha <strong>ai_insight_ready</strong> vía Socket.IO</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text">Renderiza card con resultado</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow 1 -->
+      <div class="flow-arr">
+        <div class="arr-label">auth</div>
+        <div class="arr-line" style="background:rgba(124,58,237,0.3)"></div>
+        <div class="arr-tip" style="color:rgba(124,58,237,0.4)">▼</div>
+      </div>
+
+      <!-- Laravel Backend -->
+      <div class="actor backend">
+        <div class="actor-header">
+          <div class="actor-name">alms-core · Laravel 8</div>
+          <div class="actor-tag">StudentInsightsAiService</div>
+        </div>
+        <div class="actor-items">
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text"><strong>Cache HIT</strong> → 200 { status: "cached", result }</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text"><strong>Cache MISS</strong> → buildSectionData() → dispatch()</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text">Construye payload: grades / attendance / observations</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text">Responde <strong>202</strong> { status: "processing" }</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text">Callback → valida token → guarda en Redis → emite WS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow 2 -->
+      <div class="flow-arr">
+        <div class="arr-label">HTTP</div>
+        <div class="arr-line" style="background:rgba(0,212,232,0.3)"></div>
+        <div class="arr-tip" style="color:rgba(0,212,232,0.4)">▼</div>
+      </div>
+
+      <!-- N8N + Gemini -->
+      <div class="actor n8n">
+        <div class="actor-header">
+          <div class="actor-name">N8N + Gemini AI</div>
+          <div class="actor-tag">n8n.jrueda.dev</div>
+        </div>
+        <div class="actor-items">
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text"><strong>Webhook</strong> POST /webhook/student-insights</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text"><strong>Switch</strong> → rama por sección</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text"><strong>Build Prompt</strong> → instrucciones + datos</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text"><strong>Gemini 2.0 Flash</strong> → genera JSON</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text"><strong>Parse</strong> → limpia markdown → JSON.parse</div>
+          </div>
+          <div class="ai">
+            <div class="ai-dot"></div>
+            <div class="ai-text"><strong>HTTP Callback</strong> → POST + X-Callback-Token</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- N8N WORKFLOW DETAIL -->
+    <div class="n8n-detail">
+      <div class="n8n-detail-title">N8N Workflow — 8 nodos · student-insights-ai</div>
+      <div class="wf-row">
+        <div class="wf-node webhook">
+          <div class="wf-node-name">Webhook</div>
+          <div class="wf-node-type">n8n-nodes-base</div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-node switch">
+          <div class="wf-node-name">Switch</div>
+          <div class="wf-node-type">by body.section</div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-node code">
+          <div class="wf-node-name">Build Prompt</div>
+          <div class="wf-node-type">Code · ×3 ramas</div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-node llm">
+          <div class="wf-node-name">LLM Chain</div>
+          <div class="wf-node-type">@n8n/langchain</div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-node gemini">
+          <div class="wf-node-name">Gemini Flash</div>
+          <div class="wf-node-type">Google AI Studio</div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-node parse">
+          <div class="wf-node-name">Parse Response</div>
+          <div class="wf-node-type">Code · clean JSON</div>
+        </div>
+        <div class="wf-arr">→</div>
+        <div class="wf-node callback">
+          <div class="wf-node-name">HTTP Callback</div>
+          <div class="wf-node-type">POST · X-Token</div>
+        </div>
+      </div>
+      <div class="wf-branch-note">
+        <span class="wbn-label">Ramas del Switch →</span>
+        <span class="wbn att">Attendance · % asistencia · ausencias justificadas</span>
+        <span class="wbn grd">Grades · promedios · escalas · calificaciones</span>
+        <span class="wbn obs">Observations · comportamiento · disciplina</span>
+      </div>
+    </div>
+
+    <!-- SCHEMA -->
+    <div class="schema-section">
+
+      <div class="schema-card payload">
+        <div class="schema-title">Payload enviado a N8N</div>
+        <div class="field-row"><span class="field-name">user_id</span><span class="field-type">uuid</span><span class="field-desc">ID del estudiante</span></div>
+        <div class="field-row"><span class="field-name">gradebook_id</span><span class="field-type">uuid</span><span class="field-desc">ID del libro de calificaciones</span></div>
+        <div class="field-row"><span class="field-name">section</span><span class="field-type">enum</span><span class="field-desc">grades | attendance | observations</span></div>
+        <div class="field-row"><span class="field-name">data</span><span class="field-type">object</span><span class="field-desc">Datos académicos del estudiante</span></div>
+        <div class="field-row"><span class="field-name">callback_url</span><span class="field-type">string</span><span class="field-desc">/api/internal/ai-analysis/callback</span></div>
+        <div class="field-row"><span class="field-name">callback_token</span><span class="field-type">secret</span><span class="field-desc">AI_CALLBACK_SECRET (env)</span></div>
+      </div>
+
+      <div class="schema-card result">
+        <div class="schema-title">Resultado generado por Gemini</div>
+        <div class="field-row"><span class="field-name">section</span><span class="field-type">enum</span><span class="field-desc">grades | attendance | observations</span></div>
+        <div class="field-row"><span class="field-name">alert_level</span><span class="field-type">enum</span></div>
+        <div class="enum-row">
+          <span class="enum-val none">none</span>
+          <span class="enum-val warning">warning</span>
+          <span class="enum-val critical">critical</span>
+        </div>
+        <div class="field-row"><span class="field-name">patterns[ ]</span><span class="field-type">array</span><span class="field-desc">color · title · description (2–5)</span></div>
+        <div class="field-row"><span class="field-name">summary</span><span class="field-type">string</span><span class="field-desc">máximo 2 oraciones</span></div>
+        <div class="field-row"><span class="field-name">recommended_actions[ ]</span><span class="field-type">array</span><span class="field-desc">title · description</span></div>
+      </div>
+
+    </div>
+
+    <!-- CROSS-CUTTING -->
+    <div class="cross-section">
+
+      <div class="cc-card cache">
+        <div class="cc-title">Cache · Redis</div>
+        <div class="cc-pills">
+          <span class="cp">ai_insight:{userId}:{gradebookId}:{section}</span>
+          <span class="cp">TTL 7 días</span>
+          <span class="cp">HIT → 200 cached</span>
+          <span class="cp">MISS → 202 processing</span>
+          <span class="cp">DELETE /ai-analysis → invalidate</span>
+        </div>
+      </div>
+
+      <div class="cc-card sec">
+        <div class="cc-title">Seguridad del Callback</div>
+        <div class="cc-pills">
+          <span class="cp">Header: X-Callback-Token</span>
+          <span class="cp">ValidateAiCallbackToken middleware</span>
+          <span class="cp">config('services.ai.callback_secret')</span>
+          <span class="cp">Ruta fuera de auth:sanctum</span>
+          <span class="cp">401 si token inválido</span>
+        </div>
+      </div>
+
+      <div class="cc-card ws">
+        <div class="cc-title">Notificación Real-time</div>
+        <div class="cc-pills">
+          <span class="cp">SocketIOClient · elephantio</span>
+          <span class="cp">emit('ai_insight_ready')</span>
+          <span class="cp">canal: channel_feed</span>
+          <span class="cp">{ user_id, gradebook_id, section, result }</span>
+          <span class="cp">Frontend renderiza card automáticamente</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /flow-section -->
+
+  <!-- INFRA -->
+  <div class="infra-section">
+    <span class="infra-label">Stack</span>
+    <span class="it n8">N8N · Workflow Automation</span>
+    <span class="it gm">Google Gemini 2.0 Flash</span>
+    <span class="it gm">LangChain · LLM Chain</span>
+    <span class="it lv">Laravel 8 · StudentInsightsAiService</span>
+    <span class="it rd">Redis · Cache</span>
+    <span class="it sk">Socket.IO · elephantio</span>
+  </div>
+
+  <!-- Footer -->
+  <div class="diag-footer">
+    <div class="stack-pills">
+      <span class="sp">N8N · Workflow Automation</span>
+      <span class="sp">Google Gemini 2.0 Flash</span>
+      <span class="sp">Laravel 8</span>
+      <span class="sp">Redis</span>
+      <span class="sp">Socket.IO</span>
+      <span class="sp">Async · Cache · Real-time</span>
+    </div>
+    <div class="diag-author">jrueda.dev</div>
+  </div>
+
+</div><!-- /diagram-card -->
+
+<!-- SERIES NAV -->
+<nav class="series-nav">
+  <div class="series-item">
+    <div class="series-item-num">1</div>
+    <h4>Backend · alms-core</h4>
+    <p>Módulos Laravel 8, jerarquía de dominio, infraestructura y autenticación.</p>
+  </div>
+  <div class="series-item">
+    <div class="series-item-num">2</div>
+    <h4>Frontend · alms-web</h4>
+    <p>Vue.js 3, estructura de vistas, estado global y comunicación con la API.</p>
+  </div>
+  <div class="series-item">
+    <div class="series-item-num">3</div>
+    <h4>Tiempo real · alms-socket</h4>
+    <p>Socket.IO server, canales, eventos y listeners en tiempo real.</p>
+  </div>
+  <div class="series-item active">
+    <div class="series-item-num">4</div>
+    <h4>IA · N8N + Gemini</h4>
+    <p>Pipeline de análisis inteligente de estudiantes con LLM y workflow automation.</p>
+  </div>
+</nav>
+
+</body>
+</html>

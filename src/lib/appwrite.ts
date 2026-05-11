@@ -12,6 +12,7 @@ export const getFilePreviewUrl = (fileId: string, bucketId: string) => {
   return storage.getFilePreview(bucketId, fileId);
 }
 
+export const bucketId = import.meta.env.VITE_APPWRITE_BUCKET_ID;
 export const databaseId = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 export const profileCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_PROFILE;
 export const projectsCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_PROJECTS;
