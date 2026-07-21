@@ -16,7 +16,7 @@ export interface Project {
   technologies: string[];
   github_url?: string;
   demo_url?: string;
-  image_ids?: string[];
+  image_id?: string[];
   category_slugs?: string[];
   architecture_diagrams?: string[];
   featured: boolean;

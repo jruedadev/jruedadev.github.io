@@ -12,6 +12,11 @@ export const getFilePreviewUrl = (fileId: string, bucketId: string) => {
   return storage.getFilePreview(bucketId, fileId);
 }
 
+// Helper para obtener la URL del archivo original (sin transformaciones, no requiere plan pago)
+export const getFileViewUrl = (fileId: string, bucketId: string) => {
+  return storage.getFileView({ bucketId, fileId });
+}
+
 export const bucketId = import.meta.env.VITE_APPWRITE_BUCKET_ID;
 export const databaseId = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 export const profileCollectionId = import.meta.env.VITE_APPWRITE_COLLECTION_PROFILE;
