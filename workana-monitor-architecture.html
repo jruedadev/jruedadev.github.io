@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workana Monitor — Architecture · Johan Rueda</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:      #00d4e8;
+    --cyan-dim:  rgba(0,212,232,0.07);
+    --cyan-bd:   rgba(0,212,232,0.22);
+    --purple:    #7c3aed;
+    --purple-dim:rgba(124,58,237,0.08);
+    --purple-bd: rgba(124,58,237,0.28);
+    --sky-dim:   rgba(56,189,248,0.06);
+    --sky-bd:    rgba(56,189,248,0.22);
+    --slate-dim: rgba(255,255,255,0.03);
+    --slate-bd:  rgba(255,255,255,0.09);
+    --bg:        #000;
+    --surface:   #0a0a0a;
+    --text:      #e2e8f0;
+    --text-muted:#475569;
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px 64px;
+  }
+
+  .page-header { text-align: center; margin-bottom: 40px; max-width: 720px; }
+  .page-series {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--cyan-dim); border: 1px solid var(--cyan-bd);
+    border-radius: 20px; padding: 4px 14px; font-size: 0.65rem;
+    font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 18px;
+  }
+  .page-series .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); opacity: 0.5; }
+  .page-title {
+    font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 900; color: #fff;
+    letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 10px;
+  }
+  .page-title em { color: var(--cyan); font-style: normal; }
+  .page-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; }
+
+  .diagram-card {
+    width: 100%; max-width: 1080px;
+    background: linear-gradient(160deg, #000000 0%, #030f18 50%, #001010 100%);
+    border: 1px solid rgba(0,212,232,0.14); border-radius: 20px;
+    padding: 36px 40px; position: relative; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .diagram-card::before {
+    content: ''; position: absolute; top: -120px; right: -120px; width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,232,0.055) 0%, transparent 65%); pointer-events: none;
+  }
+  .diagram-card::after {
+    content: ''; position: absolute; bottom: -140px; left: -60px; width: 460px; height: 460px;
+    background: radial-gradient(circle, rgba(124,58,237,0.04) 0%, transparent 65%); pointer-events: none;
+  }
+
+  .diag-header {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    margin-bottom: 28px; position: relative; z-index: 1;
+  }
+  .diag-title { font-size: 1.15rem; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
+  .diag-title .accent { color: var(--cyan); }
+  .diag-meta {
+    font-size: 0.6rem; color: rgba(255,255,255,0.18);
+    font-family: 'Cascadia Code', 'Fira Code', monospace; margin-top: 4px; letter-spacing: 0.3px;
+  }
+  .diag-badge {
+    flex-shrink: 0; background: var(--cyan-dim); border: 1px solid var(--cyan-bd);
+    border-radius: 20px; padding: 5px 14px; font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase; color: var(--cyan); white-space: nowrap;
+  }
+
+  .auth-band {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    background: var(--purple-dim); border: 1px solid var(--purple-bd);
+    border-radius: 10px; padding: 9px 14px; margin-bottom: 16px; position: relative; z-index: 1;
+  }
+  .auth-band-label {
+    font-size: 0.56rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(167,139,250,0.55); margin-right: 6px; white-space: nowrap; flex-shrink: 0;
+  }
+  .auth-sep { width: 1px; height: 18px; background: rgba(124,58,237,0.2); margin: 0 4px; }
+  .ap {
+    background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 5px; padding: 3px 9px; font-size: 0.62rem; color: #c4b5fd; font-weight: 600; white-space: nowrap;
+  }
+  .mp {
+    background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 5px; padding: 3px 9px; font-size: 0.62rem; color: #fcd34d; font-weight: 600; white-space: nowrap;
+  }
+
+  .hierarchy { display: flex; flex-direction: column; gap: 0; position: relative; z-index: 1; }
+  .layer-row { display: flex; align-items: stretch; gap: 0; }
+  .layer-num {
+    writing-mode: vertical-rl; transform: rotate(180deg); font-size: 0.5rem; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase; min-width: 24px; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.05); padding: 0 4px;
+  }
+  .layer-num.l1 { color: rgba(167,139,250,0.35); }
+  .layer-num.l2 { color: rgba(56,189,248,0.3); }
+  .layer-num.l3 { color: rgba(255,255,255,0.15); }
+  .layer-num.l4 { color: rgba(0,212,232,0.4); }
+  .layer-num.l5 { color: rgba(52,211,153,0.4); }
+
+  .layer-body { flex: 1; border-radius: 11px; padding: 14px 18px; border: 1px solid; margin-left: 10px; }
+  .layer-body.l1 { background: rgba(124,58,237,0.05); border-color: rgba(124,58,237,0.22); }
+  .layer-body.l2 { background: rgba(56,189,248,0.04); border-color: rgba(56,189,248,0.18); }
+  .layer-body.l3 { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.07); }
+  .layer-body.l4 { background: rgba(0,212,232,0.04); border-color: rgba(0,212,232,0.22); }
+  .layer-body.l5 { background: rgba(52,211,153,0.04); border-color: rgba(52,211,153,0.2); }
+
+  .layer-title { font-size: 0.57rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; }
+  .l1 .layer-title { color: rgba(167,139,250,0.6); }
+  .l2 .layer-title { color: rgba(56,189,248,0.55); }
+  .l3 .layer-title { color: rgba(255,255,255,0.28); }
+  .l4 .layer-title { color: rgba(0,212,232,0.6); }
+  .l5 .layer-title { color: rgba(52,211,153,0.6); }
+
+  .modules-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+  .mc { border-radius: 9px; padding: 10px 13px; border: 1px solid; min-width: 110px; flex-shrink: 0; }
+  .mc-name { font-size: 0.73rem; font-weight: 700; margin-bottom: 6px; white-space: nowrap; }
+  .mc-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+  .tag { border-radius: 3px; padding: 2px 6px; font-size: 0.54rem; font-weight: 600; white-space: nowrap; }
+
+  .mc.l1 { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.28); }
+  .mc.l1 .mc-name { color: #c4b5fd; }
+  .mc.l1 .tag { background: rgba(124,58,237,0.1); color: rgba(196,181,253,0.65); }
+
+  .mc.l2 { background: rgba(56,189,248,0.06); border-color: rgba(56,189,248,0.22); }
+  .mc.l2 .mc-name { color: #7dd3fc; }
+  .mc.l2 .tag { background: rgba(56,189,248,0.08); color: rgba(125,211,252,0.6); }
+
+  .mc.l3 { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.09); }
+  .mc.l3 .mc-name { color: rgba(255,255,255,0.72); }
+  .mc.l3 .tag { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.38); }
+
+  .mc.l4 { background: rgba(0,212,232,0.07); border-color: rgba(0,212,232,0.3); }
+  .mc.l4 .mc-name { color: #00d4e8; }
+  .mc.l4 .tag { background: rgba(0,212,232,0.07); color: rgba(0,212,232,0.6); }
+
+  .mc.l5 { background: rgba(52,211,153,0.07); border-color: rgba(52,211,153,0.3); }
+  .mc.l5 .mc-name { color: #6ee7b7; }
+  .mc.l5 .tag { background: rgba(52,211,153,0.08); color: rgba(110,231,183,0.65); }
+
+  .vconn { padding-left: 34px; margin: 4px 0; }
+  .vconn-line { width: 1px; height: 12px; background: rgba(0,212,232,0.1); margin-left: 14px; }
+
+  .cross-section {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px;
+    padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.04); position: relative; z-index: 1;
+  }
+  @media (max-width: 780px) { .cross-section { grid-template-columns: 1fr 1fr; } }
+
+  .cc-card { border-radius: 9px; padding: 10px 12px; border: 1px solid; }
+  .cc-title { font-size: 0.56rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; }
+  .cc-pills { display: flex; flex-wrap: wrap; gap: 3px; }
+  .cp { border-radius: 3px; padding: 2px 6px; font-size: 0.56rem; font-weight: 600; }
+
+  .cc-card.notif  { background: rgba(52,211,153,0.04);  border-color: rgba(52,211,153,0.18); }
+  .cc-card.notif  .cc-title { color: rgba(52,211,153,0.6); }
+  .cc-card.notif  .cp { background: rgba(52,211,153,0.07); color: rgba(52,211,153,0.65); }
+
+  .cc-card.events { background: rgba(251,191,36,0.04);  border-color: rgba(251,191,36,0.16); }
+  .cc-card.events .cc-title { color: rgba(251,191,36,0.55); }
+  .cc-card.events .cp { background: rgba(251,191,36,0.06); color: rgba(251,191,36,0.6); }
+
+  .cc-card.conf   { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.07); }
+  .cc-card.conf   .cc-title { color: rgba(255,255,255,0.25); }
+  .cc-card.conf   .cp { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.38); }
+
+  .infra-section {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 16px;
+    padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.04); position: relative; z-index: 1;
+  }
+  .infra-label {
+    font-size: 0.54rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.15); margin-right: 6px; flex-shrink: 0;
+  }
+  .it { padding: 3px 9px; border-radius: 4px; font-size: 0.61rem; font-weight: 700; white-space: nowrap; }
+  .it.pg  { background: rgba(56,189,248,0.07);  border: 1px solid rgba(56,189,248,0.22);  color: #7dd3fc; }
+  .it.rd  { background: rgba(239,68,68,0.07);   border: 1px solid rgba(239,68,68,0.22);   color: #fca5a5; }
+  .it.s3  { background: rgba(251,191,36,0.07);  border: 1px solid rgba(251,191,36,0.22);  color: #fcd34d; }
+  .it.k8s { background: rgba(52,211,153,0.07);  border: 1px solid rgba(52,211,153,0.22);  color: #6ee7b7; }
+  .it.q   { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);  color: rgba(255,255,255,0.38); }
+  .it.sp  { background: rgba(124,58,237,0.07);  border: 1px solid rgba(124,58,237,0.22);  color: #c4b5fd; }
+  .it.do  { background: rgba(0,212,232,0.07);   border: 1px solid rgba(0,212,232,0.22);   color: #00d4e8; }
+
+  .diag-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px;
+    padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.04); position: relative; z-index: 1; flex-wrap: wrap;
+  }
+  .stack-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .sp {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px; padding: 2px 9px; font-size: 0.56rem; color: rgba(255,255,255,0.27);
+  }
+  .diag-author { font-size: 0.62rem; color: rgba(0,212,232,0.3); font-weight: 800; letter-spacing: 0.5px; white-space: nowrap; }
+
+  /* Nota de estado (pendientes/diseñado-no-integrado) */
+  .status-note {
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 1; font-size: 0.62rem; color: rgba(255,255,255,0.3); line-height: 1.7;
+  }
+  .status-note b { color: rgba(251,191,36,0.7); }
+
+  @media (max-width: 640px) {
+    html, body { max-width: 100%; overflow-x: hidden; }
+    body { padding: 20px 10px 36px; }
+    .diagram-card { padding: 16px 12px; border-radius: 12px; overflow: hidden; }
+    .page-header { margin-bottom: 20px; }
+    .diag-header { flex-direction: column-reverse; align-items: center; gap: 6px; text-align: center; }
+    .diag-badge { align-self: center; }
+    .diag-meta { display: none; }
+    .layer-row { gap: 4px; overflow: hidden; }
+    .layer-num { display: none; }
+    .layer-body { padding: 10px 10px; margin-left: 0; border-radius: 10px; overflow: hidden; }
+    .modules-row { gap: 5px; }
+    .mc { min-width: 0; flex: 1 1 100%; width: 100%; box-sizing: border-box; }
+    .mc-name { white-space: normal; font-size: 0.68rem; }
+    .cross-section { grid-template-columns: 1fr; }
+    .auth-band { gap: 4px; }
+  }
+</style>
+<style>
+  [data-theme="light"] {
+    --bg:        #f8fafc;
+    --surface:   #ffffff;
+    --text:      #0f172a;
+    --text-muted:#64748b;
+    --slate-dim: rgba(0,0,0,0.03);
+    --slate-bd:  rgba(0,0,0,0.09);
+    --cyan-dim:  rgba(0,180,200,0.08);
+    --cyan-bd:   rgba(0,180,200,0.30);
+    --purple-dim:rgba(124,58,237,0.07);
+    --purple-bd: rgba(124,58,237,0.25);
+    --sky-dim:   rgba(14,165,233,0.07);
+    --sky-bd:    rgba(14,165,233,0.25);
+  }
+</style>
+<script>
+  window.addEventListener("message", function(e) {
+    if (e.data && (e.data.theme === "light" || e.data.theme === "dark")) {
+      document.documentElement.setAttribute("data-theme", e.data.theme);
+    }
+  });
+</script>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="page-series">
+    <div class="dot"></div>
+    Workana Monitor · Arquitectura del Sistema
+    <div class="dot"></div>
+  </div>
+  <h1 class="page-title"><em>Workflow</em> Architecture<br>workana-monitor</h1>
+  <p class="page-desc">
+    Automatización en n8n de 16 nodos que vigila la API interna de Workana cada 30 minutos,
+    detecta proyectos nuevos y cambios relevantes evitando falsos positivos, y notifica por Telegram
+    manteniendo el estado en Airtable.
+  </p>
+</header>
+
+<div class="diagram-card">
+
+  <div class="diag-header">
+    <div class="diag-title-block">
+      <div class="diag-title">
+        <span class="accent">{</span> Workana Monitor <span class="accent">}</span> — Workflow Architecture
+      </div>
+      <div class="diag-meta">n8n · 16 nodes · Scrape interno + dedupe · Airtable state · Telegram notify</div>
+    </div>
+    <div class="diag-badge">n8n · Automation</div>
+  </div>
+
+  <!-- AUTH BAND -->
+  <div class="auth-band">
+    <span class="auth-band-label">Auth &amp; Anti-bloqueo</span>
+    <span class="ap">Header Auth · Cookie sesión (manual)</span>
+    <span class="ap">CSRF meta-token (login, no automatizado)</span>
+    <div class="auth-sep"></div>
+    <span class="mp">User-Agent</span>
+    <span class="mp">Referer dinámico</span>
+    <span class="mp">Sec-Fetch-Mode/Site</span>
+    <span class="mp">Accept-Language</span>
+  </div>
+
+  <!-- HIERARCHY -->
+  <div class="hierarchy">
+
+    <!-- L1 -->
+    <div class="layer-row">
+      <div class="layer-num l1">L 1</div>
+      <div class="layer-body l1">
+        <div class="layer-title">Trigger &amp; Config</div>
+        <div class="modules-row">
+
+          <div class="mc l1">
+            <div class="mc-name">Cada 30 min</div>
+            <div class="mc-tags">
+              <span class="tag">Schedule Trigger</span>
+            </div>
+          </div>
+
+          <div class="mc l1">
+            <div class="mc-name">Config</div>
+            <div class="mc-tags">
+              <span class="tag">chatId</span>
+              <span class="tag">skills CSV</span>
+            </div>
+          </div>
+
+          <div class="mc l1">
+            <div class="mc-name">Skills a monitorear</div>
+            <div class="mc-tags">
+              <span class="tag">Code · split skills</span>
+              <span class="tag">9 items</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L2 -->
+    <div class="layer-row">
+      <div class="layer-num l2">L 2</div>
+      <div class="layer-body l2">
+        <div class="layer-title">Ingesta &amp; Parsing</div>
+        <div class="modules-row">
+
+          <div class="mc l2">
+            <div class="mc-name">Buscar en Workana</div>
+            <div class="mc-tags">
+              <span class="tag">HTTP Request</span>
+              <span class="tag">API interna JSON</span>
+              <span class="tag">/jobs?skills=X</span>
+            </div>
+          </div>
+
+          <div class="mc l2">
+            <div class="mc-name">Parsear proyectos</div>
+            <div class="mc-tags">
+              <span class="tag">Code · Run Once for All Items</span>
+              <span class="tag">stripHtml</span>
+              <span class="tag">cruce por índice c/ skill</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L3 -->
+    <div class="layer-row">
+      <div class="layer-num l3">L 3</div>
+      <div class="layer-body l3">
+        <div class="layer-title">Deduplicación &amp; Detección de Cambios</div>
+        <div class="modules-row">
+
+          <div class="mc l3">
+            <div class="mc-name">Listar vistos en Airtable</div>
+            <div class="mc-tags">
+              <span class="tag">Airtable search</span>
+            </div>
+          </div>
+
+          <div class="mc l3">
+            <div class="mc-name">Comparar (nuevos vs vistos)</div>
+            <div class="mc-tags">
+              <span class="tag">Compare Datasets</span>
+              <span class="tag">match: slug</span>
+              <span class="tag">skip: postedDate, totalBids, matched_skill</span>
+            </div>
+          </div>
+
+          <div class="mc l3">
+            <div class="mc-name">Preparar actualización</div>
+            <div class="mc-tags">
+              <span class="tag">Code · NOISY_FIELDS</span>
+              <span class="tag">hasMeaningfulChange</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L4 -->
+    <div class="layer-row">
+      <div class="layer-num l4">L 4</div>
+      <div class="layer-body l4">
+        <div class="layer-title">Persistencia — Airtable (upsert por slug)</div>
+        <div class="modules-row">
+
+          <div class="mc l4">
+            <div class="mc-name">Guardar nuevo</div>
+            <div class="mc-tags">
+              <span class="tag">create</span>
+              <span class="tag">In A only</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">¿Cambio relevante?</div>
+            <div class="mc-tags">
+              <span class="tag">IF · antes del write</span>
+              <span class="tag">$json.hasMeaningfulChange</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">Actualizar proyecto cambiado</div>
+            <div class="mc-tags">
+              <span class="tag">upsert (con notif.)</span>
+              <span class="tag">upsert (sin notif.)</span>
+            </div>
+          </div>
+
+          <div class="mc l4">
+            <div class="mc-name">Marcar cerrado</div>
+            <div class="mc-tags">
+              <span class="tag">Code · status=closed</span>
+              <span class="tag">In B only</span>
+              <span class="tag">upsert</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="vconn"><div class="vconn-line"></div></div>
+
+    <!-- L5 -->
+    <div class="layer-row">
+      <div class="layer-num l5">L 5</div>
+      <div class="layer-body l5">
+        <div class="layer-title">Notificación</div>
+        <div class="modules-row">
+
+          <div class="mc l5">
+            <div class="mc-name">Notificar por Telegram</div>
+            <div class="mc-tags">
+              <span class="tag">Nuevo proyecto</span>
+              <span class="tag">chatId fijo (Config)</span>
+            </div>
+          </div>
+
+          <div class="mc l5">
+            <div class="mc-name">Notificar cambio</div>
+            <div class="mc-tags">
+              <span class="tag">Solo si hasMeaningfulChange</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /hierarchy -->
+
+  <!-- CROSS-CUTTING -->
+  <div class="cross-section">
+
+    <div class="cc-card notif">
+      <div class="cc-title">Anti falsos-positivos</div>
+      <div class="cc-pills">
+        <span class="cp">postedDate excluido</span>
+        <span class="cp">totalBids excluido</span>
+        <span class="cp">matched_skill excluido</span>
+      </div>
+    </div>
+
+    <div class="cc-card events">
+      <div class="cc-title">Fixes de plataforma n8n</div>
+      <div class="cc-pills">
+        <span class="cp">.first() vs .item</span>
+        <span class="cp">sin Split In Batches</span>
+        <span class="cp">Airtable anida en fields</span>
+      </div>
+    </div>
+
+    <div class="cc-card conf">
+      <div class="cc-title">Diseñado, no integrado</div>
+      <div class="cc-pills">
+        <span class="cp">Bot suscripciones (/start /skills)</span>
+        <span class="cp">Fan-out multi-chatId</span>
+        <span class="cp">Health-check cookie caída</span>
+      </div>
+    </div>
+
+  </div><!-- /cross-section -->
+
+  <!-- INFRA -->
+  <div class="infra-section">
+    <span class="infra-label">Infrastructure</span>
+    <span class="it do">n8n · n8n.jrueda.dev</span>
+    <span class="it sp">Airtable · Workana Base</span>
+    <span class="it k8s">Telegram Bot API</span>
+    <span class="it q">Cron · cada 30 min</span>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="diag-footer">
+    <div class="stack-pills">
+      <span class="sp">n8n</span>
+      <span class="sp">JavaScript (Code nodes)</span>
+      <span class="sp">Airtable</span>
+      <span class="sp">Telegram Bot API</span>
+      <span class="sp">REST API scraping</span>
+    </div>
+    <div class="diag-author">jrueda.dev</div>
+  </div>
+
+  <div class="status-note">
+    <b>Estado actual:</b> activo y estable (sin duplicados confirmados tras últimos fixes). Refresco de cookie de Workana: manual, vía DevTools. Sistema de suscriptores y health-check de cookie: diseñados pero no integrados al workflow principal.
+  </div>
+
+</div><!-- /diagram-card -->
+
+</body>
+</html>
