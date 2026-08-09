@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Github, Linkedin, Globe, ArrowRight } from 'lucide-react';
 import profilePhoto from '@/assets/profile-photo.jpg';
@@ -8,6 +9,7 @@ import { ParticlesBackground } from '@/components/ParticlesBackground';
 export const Hero = () => {
   const { t, i18n } = useTranslation();
   const { data: profile, isLoading } = useProfile();
+  const navigate = useNavigate();
 
   const title = i18n.language === 'es' ? profile?.title_es : profile?.title_en;
 
@@ -15,8 +17,8 @@ export const Hero = () => {
     document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const scrollToContact = () => {
-    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+  const goToContact = () => {
+    navigate('/contact');
   };
 
   return (
@@ -41,7 +43,7 @@ export const Hero = () => {
                 {t('hero.cta')}
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button onClick={scrollToContact} variant="secondary" size="lg">
+              <Button onClick={goToContact} variant="secondary" size="lg">
                 {t('hero.contact')}
               </Button>
             </div>

@@ -29,6 +29,10 @@ There is no test suite configured in this repo.
 - **Deployment**: Deployed on Vercel; `vercel.json` rewrites all paths to `index.html` for client-side routing.
 - **Standalone architecture diagrams**: The `alms-*-architecture.html` files at the repo root are self-contained diagram viewers (not part of the Vite build) that sync with the site's theme.
 
+## Verifying UI changes
+
+Use the `playwright` Python CLI (installed at `~/.local/bin/playwright`, Python package at `~/.local/lib/python3.12/site-packages/playwright`) to visually verify frontend changes instead of `mcp__claude-in-chrome__*` tools, which have proven unreliable in this environment (intermittent "Cannot access a chrome-extension://" errors blocking screenshots/clicks). Write a small script with `sync_playwright()`, `page.goto(...)`, optionally `page.evaluate("document.documentElement.classList.add('light')")` to force the light theme (the app defaults to dark), then `page.screenshot(path=...)` and read the image back with the Read tool. The dev server must be running (`npm run dev`, port 3000) before navigating.
+
 ## Conventions
 
 - ESLint has `@typescript-eslint/no-unused-vars` turned off and allows constant exports in fast-refresh files — don't reintroduce these as blocking rules.
