@@ -146,7 +146,7 @@ export const Header = () => {
             ))}
             <button
               onClick={handleProjectsPageClick}
-              className={`text-foreground hover:text-primary transition-colors ${
+              className={`block w-full text-left px-2 py-2 text-foreground hover:text-primary transition-colors ${
                 location.pathname === '/projects' ? 'text-primary' : ''
               }`}
             >
@@ -154,7 +154,7 @@ export const Header = () => {
             </button>
             <button
               onClick={handleContactClick}
-              className={`text-foreground hover:text-primary transition-colors ${
+              className={`block w-full text-left px-2 py-2 text-foreground hover:text-primary transition-colors ${
                 location.pathname === '/contact' ? 'text-primary' : ''
               }`}
             >

@@ -40,7 +40,7 @@ export const About = () => {
               const Icon = stat.icon;
               return (
                 <Card key={index}
-                  className="p-6 text-center bg-card border-border hover:border-primary transition-all hover:shadow-glow animate-fade-in"
+                  className="p-6 text-center bg-card border-border shadow-card hover:border-primary transition-all hover:shadow-glow animate-fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}>
                   <Icon className="h-8 w-8 mx-auto mb-4 text-primary" />
                   <div className="text-3xl font-bold text-primary mb-2">{stat.value}</div>
@@ -59,7 +59,7 @@ export const About = () => {
                 const Icon = interest.icon;
                 return (
                   <Card key={index}
-                    className="p-6 bg-card border-border hover:border-primary transition-all hover:shadow-glow animate-fade-in"
+                    className="p-6 bg-card border-border shadow-card hover:border-primary transition-all hover:shadow-glow animate-fade-in"
                     style={{ animationDelay: `${index * 0.1}s` }}>
                     <Icon className="h-8 w-8 mb-4 text-primary" />
                     <h4 className="text-lg font-semibold mb-2">{interest.label}</h4>

@@ -75,7 +75,7 @@ export const Experience = () => {
                   </div>
 
                   {/* Card */}
-                  <Card className="flex-1 p-6 bg-card border-border hover:border-primary transition-all hover:shadow-glow">
+                  <Card className="flex-1 p-6 bg-card border-border shadow-card hover:border-primary transition-all hover:shadow-glow">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-3">
                       <div>
                         <h3 className="text-xl font-bold text-foreground">

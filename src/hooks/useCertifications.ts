@@ -11,6 +11,8 @@ export interface Certification {
   credential_url?: string;
   image_id?: string;
   order: number;
+  type?: 'certification' | 'course';
+  platform?: string;
 }
 
 export const useCertifications = () => {

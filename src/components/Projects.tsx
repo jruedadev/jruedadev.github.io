@@ -45,7 +45,7 @@ export const Projects = () => {
           {projects?.map((project, index) => (
             <Card
               key={project.$id}
-              className="overflow-hidden bg-card border-border hover:border-primary transition-all hover:shadow-glow animate-fade-in"
+              className="overflow-hidden bg-card border-border shadow-card hover:border-primary transition-all hover:shadow-glow animate-fade-in"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="p-6 space-y-4">
@@ -75,7 +75,7 @@ export const Projects = () => {
                 {/* Botones */}
                 <div className="flex gap-3 pt-2">
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => navigate(`/projects/${project.$id}`)}
                     className="w-full mt-1"

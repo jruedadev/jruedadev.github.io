@@ -22,8 +22,8 @@ const Index = () => {
       <Header />
       <Hero />
       <About />
-      <Experience />
       <Skills />
+      <Experience />
       <Projects />
       {/* Botón ver todos los proyectos */}
           <div className="flex justify-center pb-20 -mt-8 bg-background">

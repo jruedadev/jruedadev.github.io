@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import logoDark from '@/assets/logo-dark.svg';
 import logoLight from '@/assets/logo-light.svg';
-import logoCompact from '@/assets/logo-compact.svg';
+import logoCompactDark from '@/assets/logo-compact-dark.svg';
+import logoCompactLight from '@/assets/logo-compact-light.svg';
 
 interface LogoProps {
   className?: string;
@@ -38,7 +39,7 @@ export const Logo = ({ className, forceCompact = false }: LogoProps) => {
   if (showCompact) {
     return (
       <img
-        src={logoCompact}
+        src={isDark ? logoCompactDark : logoCompactLight}
         alt="jrueda.dev"
         className={className ?? 'h-8 w-auto'}
       />
