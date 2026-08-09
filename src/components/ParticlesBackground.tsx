@@ -9,9 +9,9 @@ interface Particle {
   radius: number;
 }
 
-const PARTICLE_COUNT = 60;
-const LINK_DISTANCE = 130;
-const SPEED = 0.25;
+const PARTICLE_COUNT = 70;
+const LINK_DISTANCE = 150;
+const SPEED = 0.3;
 
 export const ParticlesBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,8 +24,8 @@ export const ParticlesBackground = () => {
     if (!ctx) return;
 
     const particleColor = theme === 'dark' ? '34, 211, 238' : '8, 145, 178';
-    const lineOpacity = theme === 'dark' ? 0.12 : 0.22;
-    const dotOpacity = theme === 'dark' ? 0.5 : 0.75;
+    const lineOpacity = theme === 'dark' ? 0.3 : 0.35;
+    const dotOpacity = theme === 'dark' ? 0.9 : 0.95;
 
     let particles: Particle[] = [];
     let animationFrameId: number;
@@ -47,7 +47,7 @@ export const ParticlesBackground = () => {
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * SPEED,
         vy: (Math.random() - 0.5) * SPEED,
-        radius: Math.random() * 1.5 + 0.5,
+        radius: Math.random() * 1.8 + 1.2,
       }));
     };
 
