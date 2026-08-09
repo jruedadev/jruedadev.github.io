@@ -467,6 +467,33 @@
   .series-item h4 { font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.35); margin-bottom: 3px; }
   .series-item.active h4 { color: #00d4e8; }
   .series-item p { font-size: 0.62rem; color: var(--text-muted); line-height: 1.5; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 640px) {
+    html, body { max-width: 100%; overflow-x: hidden; }
+    body { padding: 20px 10px 36px; }
+    .diagram-card { padding: 16px 12px; border-radius: 12px; overflow: hidden; }
+    .page-header { margin-bottom: 20px; }
+
+    /* Badge arriba del título, centrado */
+    .diag-header { flex-direction: column-reverse; align-items: center; gap: 6px; text-align: center; }
+    .diag-badge { align-self: center; }
+    .diag-meta { display: none; }
+
+    /* Capas L1–L4 */
+    .layer-row { gap: 4px; overflow: hidden; }
+    .layer-num { display: none; }
+    .layer-body { padding: 10px 10px; margin-left: 0; border-radius: 10px; overflow: hidden; }
+    .modules-row { gap: 5px; }
+    .mc { min-width: 0; flex: 1 1 100%; width: 100%; box-sizing: border-box; }
+    .mc-name { white-space: normal; font-size: 0.68rem; }
+
+    /* Cross-cutting */
+    .cross-section { grid-template-columns: 1fr; }
+
+    /* Auth band */
+    .auth-band { gap: 4px; }
+  }
 </style>
 <style>
   [data-theme="light"] {

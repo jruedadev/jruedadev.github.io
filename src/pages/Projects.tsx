@@ -192,7 +192,7 @@ const Projects = () => {
               {filteredProjects.map((project, index) => (
                 <Card
                   key={project.$id}
-                  className="overflow-hidden bg-card border-border hover:border-primary transition-all hover:shadow-glow animate-fade-in flex flex-col"
+                  className="overflow-hidden bg-card border-border shadow-card hover:border-primary transition-all hover:shadow-glow animate-fade-in flex flex-col"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <div className="p-6 flex flex-col flex-1 space-y-4">
@@ -256,7 +256,7 @@ const Projects = () => {
                         </Button>
                       )}
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => navigate(`/projects/${project.$id}`)}
                         className="flex-1"

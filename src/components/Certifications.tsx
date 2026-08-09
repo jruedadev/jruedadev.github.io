@@ -11,6 +11,25 @@ export const Certifications = () => {
   const getTitle = (cert) =>
     i18n.language === 'es' ? cert.title_es : cert.title_en;
 
+  const formalCertifications = certifications?.filter((cert) => cert.type !== 'course');
+  const complementaryCourses = certifications?.filter((cert) => cert.type === 'course');
+
+  const coursesByPlatformAll = complementaryCourses?.reduce<Record<string, typeof complementaryCourses>>(
+    (groups, cert) => {
+      const key = cert.platform || (i18n.language === 'es' ? 'Otros' : 'Other');
+      groups[key] = [...(groups[key] || []), cert];
+      return groups;
+    },
+    {}
+  );
+
+  const coursesByPlatform = coursesByPlatformAll
+    ? Object.fromEntries(Object.entries(coursesByPlatformAll).filter(([, courses]) => courses.length > 1))
+    : undefined;
+  const soloCourses = coursesByPlatformAll
+    ? Object.values(coursesByPlatformAll).filter((courses) => courses.length === 1).flat()
+    : undefined;
+
   if (isLoading) {
     return (
       <section id="certifications" className="py-20 bg-secondary/20">
@@ -36,10 +55,10 @@ export const Certifications = () => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {certifications?.map((cert, index) => (
+          {formalCertifications?.map((cert, index) => (
             <Card
               key={cert.$id}
-              className="p-6 bg-card border-border hover:border-primary transition-all hover:shadow-glow group animate-fade-in"
+              className="p-6 bg-card border-border shadow-card hover:border-primary transition-all hover:shadow-glow group animate-fade-in"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-start gap-4">
@@ -74,6 +93,94 @@ export const Certifications = () => {
             </Card>
           ))}
         </div>
+
+        {complementaryCourses && complementaryCourses.length > 0 && (
+          <div className="max-w-4xl mx-auto mt-12">
+            <h3 className="text-xl font-semibold text-center mb-6 text-muted-foreground">
+              {i18n.language === 'es' ? 'Formación complementaria' : 'Complementary training'}
+            </h3>
+            {coursesByPlatform && Object.keys(coursesByPlatform).length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {Object.entries(coursesByPlatform).map(([platform, courses], groupIndex) => (
+                <div
+                  key={platform}
+                  className="rounded-lg border border-border bg-card shadow-card p-4 animate-fade-in"
+                  style={{ animationDelay: `${groupIndex * 0.1}s` }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-foreground">{platform}</span>
+                    <Badge variant="secondary" className="text-xs">
+                      {courses.length}
+                    </Badge>
+                  </div>
+                  <ul className="divide-y divide-border">
+                    {courses.map((cert) => {
+                      const row = (
+                        <>
+                          <span className="text-sm text-foreground truncate">{getTitle(cert)}</span>
+                          <span className="text-xs text-muted-foreground shrink-0 ml-3">{cert.year}</span>
+                        </>
+                      );
+                      return (
+                        <li key={cert.$id}>
+                          {cert.credential_url ? (
+                            <a
+                              href={cert.credential_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between gap-2 py-2 hover:text-primary transition-colors"
+                            >
+                              {row}
+                            </a>
+                          ) : (
+                            <div className="flex items-center justify-between gap-2 py-2">
+                              {row}
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            )}
+
+            {soloCourses && soloCourses.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-3 mt-4">
+                {soloCourses.map((cert) => {
+                  const content = (
+                    <>
+                      <span className="text-foreground">{getTitle(cert)}</span>
+                      {cert.platform && (
+                        <span className="text-muted-foreground">· {cert.platform}</span>
+                      )}
+                      <span className="text-muted-foreground text-xs">{cert.year}</span>
+                    </>
+                  );
+                  return cert.credential_url ? (
+                    <a
+                      key={cert.$id}
+                      href={cert.credential_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border border-border bg-card hover:border-primary transition-colors"
+                    >
+                      {content}
+                    </a>
+                  ) : (
+                    <span
+                      key={cert.$id}
+                      className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border border-border bg-card"
+                    >
+                      {content}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

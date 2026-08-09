@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Github, Linkedin, Globe, ArrowRight } from 'lucide-react';
 import profilePhoto from '@/assets/profile-photo.jpg';
 import { useProfile } from '@/hooks/useProfile';
+import { ParticlesBackground } from '@/components/ParticlesBackground';
 
 export const Hero = () => {
   const { t, i18n } = useTranslation();
@@ -19,8 +20,9 @@ export const Hero = () => {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-hero pt-20">
-      <div className="container mx-auto px-6 py-20">
+    <section className="relative overflow-hidden min-h-screen flex items-center justify-center bg-gradient-hero pt-20">
+      <ParticlesBackground />
+      <div className="relative container mx-auto px-6 py-20">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6 animate-fade-in">
             <p className="text-primary text-lg font-medium">{t('hero.greeting')}</p>

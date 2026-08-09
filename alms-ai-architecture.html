@@ -276,6 +276,35 @@
   .series-item h4 { font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.35); margin-bottom: 3px; }
   .series-item.active h4 { color: #00d4e8; }
   .series-item p { font-size: 0.62rem; color: var(--text-muted); line-height: 1.5; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 640px) {
+    html, body { max-width: 100%; overflow-x: hidden; }
+    body { padding: 20px 10px 36px; }
+    .diagram-card { padding: 16px 12px; border-radius: 12px; overflow: hidden; }
+    .page-header { margin-bottom: 20px; }
+
+    /* Badge arriba del título, centrado */
+    .diag-header { flex-direction: column-reverse; align-items: center; gap: 6px; text-align: center; }
+    .diag-badge { align-self: center; }
+    .diag-meta { display: none; }
+
+    /* Actors */
+    .actors-row { grid-template-columns: 1fr; }
+    .flow-arr { display: none; }
+    .actor { width: 100%; }
+    .actor-tag { font-size: 0.5rem; }
+
+    /* Workflow nodes */
+    .wf-row { flex-wrap: wrap; gap: 4px; }
+    .wf-node { min-width: 0; flex: 1 1 calc(50% - 4px); }
+    .wf-arr { display: none; }
+
+    /* Schema & cross */
+    .schema-section { grid-template-columns: 1fr; }
+    .cross-section { grid-template-columns: 1fr; }
+    .field-name { min-width: 70px; font-size: 0.58rem; }
+  }
 </style>
 <style>
   [data-theme="light"] {

@@ -43,7 +43,7 @@ export const Skills = () => {
             return (
               <Card
                 key={cat.key}
-                className="p-6 bg-card border-border hover:border-primary transition-all hover:shadow-glow animate-fade-in"
+                className="p-6 bg-card border-border shadow-card hover:border-primary transition-all hover:shadow-glow animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <h3 className="text-2xl font-semibold mb-6 text-primary">{cat.label}</h3>
